@@ -30,8 +30,8 @@ export default async function WritersPage() {
                 ) : (
                   <div className="avatar-fallback">{w.writer_name[0]?.toUpperCase()}</div>
                 )}
-                <div style={{ fontWeight: 700, marginTop: 8 }}>{w.writer_name}</div>
-                <div style={{ fontSize: 12, color: "var(--muted)" }}>
+                <div className="wname">{w.writer_name}</div>
+                <div className="wsub">
                   {fmtCount(w.follower_count || 0)} followers
                 </div>
               </Link>

@@ -89,7 +89,7 @@ export default async function HomePage() {
         <SectionHead title="Categories" href="/categories" more="View all" />
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {(categories || []).slice(0, 12).map((c) => (
-            <Link key={c.id} href={`/books?category=${encodeURIComponent(c.name)}`} className="pill" style={{ fontSize: 13, padding: "8px 14px" }}>
+            <Link key={c.id} href={`/books?category=${encodeURIComponent(c.name)}`} className="chip">
               {c.name}
             </Link>
           ))}
@@ -107,17 +107,17 @@ export default async function HomePage() {
               ) : (
                 <div className="avatar-fallback">{w.writer_name[0]?.toUpperCase()}</div>
               )}
-              <div style={{ fontWeight: 700, marginTop: 8 }}>{w.writer_name}</div>
-              <div style={{ fontSize: 12, color: "var(--muted)" }}>{fmtCount(w.follower_count || 0)} followers</div>
+              <div className="wname">{w.writer_name}</div>
+              <div className="wsub">{fmtCount(w.follower_count || 0)} followers</div>
             </Link>
           ))}
         </div>
       </section>
 
       <section className="section">
-        <div className="card" style={{ padding: 28, textAlign: "center" }}>
-          <h2 style={{ margin: "0 0 8px" }}>Love to write?</h2>
-          <p style={{ color: "var(--muted)", margin: "0 0 16px" }}>
+        <div className="card cta">
+          <h2>Love to write?</h2>
+          <p>
             Publish your own stories with Writer Studio in the Lekhoni Kahini app.
           </p>
           <Link className="btn" href="/about">

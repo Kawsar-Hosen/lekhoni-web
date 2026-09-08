@@ -86,7 +86,7 @@ export default function SearchClient() {
                     ) : (
                       <div className="avatar-fallback">{w.writer_name[0]?.toUpperCase()}</div>
                     )}
-                    <div style={{ fontWeight: 700, marginTop: 8 }}>{w.writer_name}</div>
+                    <div className="wname">{w.writer_name}</div>
                   </Link>
                 ))}
               </div>
@@ -99,7 +99,7 @@ export default function SearchClient() {
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {catHits.map((c) => (
-                  <Link key={c.id} href={`/books?category=${encodeURIComponent(c.name)}`} className="pill" style={{ fontSize: 13, padding: "8px 14px" }}>
+                  <Link key={c.id} href={`/books?category=${encodeURIComponent(c.name)}`} className="chip">
                     {c.name}
                   </Link>
                 ))}

@@ -15,8 +15,12 @@ export type ResolvedTheme = "light" | "dark";
 
 const KEY = "lk-theme";
 
-function storedTheme(): Theme {
-  if (typeof window === "undefined") return "system";
+function subscribeStore(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  return () => window.removeEventListener("storage", onChange);
+}
+
+function snapshotStore(): Theme {
   try {
     const s = window.localStorage.getItem(KEY);
     if (s === "light" || s === "dark" || s === "system") return s;
@@ -41,7 +45,10 @@ const Ctx = createContext<{
 }>({ theme: "system", resolved: "light", setTheme: () => {} });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(storedTheme);
+  // Server snapshot is 'system' so hydration matches; client syncs after.
+  const stored = useSyncExternalStore(subscribeStore, snapshotStore, (): Theme => "system");
+  const [override, setOverride] = useState<Theme | null>(null);
+  const theme = override ?? stored;
   const prefersDark = useSyncExternalStore(subscribePrefersDark, snapshotPrefersDark, () => false);
   const resolved: ResolvedTheme = theme === "system" ? (prefersDark ? "dark" : "light") : theme;
 
@@ -53,7 +60,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [resolved]);
 
   const setTheme = useCallback((t: Theme) => {
-    setThemeState(t);
+    setOverride(t);
     try {
       window.localStorage.setItem(KEY, t);
     } catch {}

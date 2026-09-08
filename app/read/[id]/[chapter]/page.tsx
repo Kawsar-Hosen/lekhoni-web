@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ReaderControls from "./ReaderControls";
+import ReadProgress from "./ReadProgress";
 import { getBook, displayAuthor } from "@/lib/api";
+import { dict } from "@/lib/dict";
+import { getLang } from "@/lib/lang-server";
 
 export const revalidate = 1800;
 
@@ -34,6 +37,8 @@ export default async function ReaderPage({
   params: Promise<{ id: string; chapter: string }>;
 }) {
   const { id, chapter } = await params;
+  const lang = await getLang();
+  const t = dict[lang];
   const b = await getBook(id);
   if (!b) notFound();
   const idx = Math.max(0, parseInt(chapter, 10) || 0);
@@ -45,13 +50,14 @@ export default async function ReaderPage({
 
   return (
     <div className="narrow">
+      <ReadProgress />
       <div style={{ marginTop: 24, marginBottom: 8 }}>
         <Link href={`/book/${b.id}`} style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)" }}>
           {b.title}
         </Link>
         <h1 style={{ margin: "6px 0 2px", fontSize: 24 }}>{c.title}</h1>
         <div style={{ fontSize: 12, color: "var(--muted)" }}>
-          Chapter {idx + 1} of {chs.length} · ~{c.minutes || 5} min read
+          {t.chapterWord} {idx + 1} {t.ofWord} {chs.length} · ~{c.minutes || 5} {t.minRead}
         </div>
       </div>
       <ReaderControls bookId={b.id} index={idx} total={chs.length} />

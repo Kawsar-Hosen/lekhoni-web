@@ -4,10 +4,13 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import AdSlot from "@/components/AdSlot";
 import Icon from "@/components/Icon";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import Comments from "@/components/Comments";
 import { FollowButton, LikeButton } from "@/components/Engage";
 import { fmtCount } from "@/components/BookCard";
 import { getBook, getBooks, getWriters, displayAuthor } from "@/lib/api";
+import { dict } from "@/lib/dict";
+import { getLang } from "@/lib/lang-server";
 
 export const revalidate = 1800;
 
@@ -48,6 +51,8 @@ function BookJsonLd({ book }: { book: NonNullable<Awaited<ReturnType<typeof getB
 
 export default async function BookPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const lang = await getLang();
+  const t = dict[lang];
   const [book, writers] = await Promise.all([getBook(id), getWriters()]);
   if (!book) notFound();
 
@@ -67,7 +72,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
               src={book.cover_url}
               alt={book.title}
               width={440}
-              height={587}
+              height={660}
               className="cover"
               priority
               sizes="(max-width: 640px) 180px, 220px"
@@ -81,8 +86,9 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
             </Link>
           )}
           <h1 style={{ margin: "10px 0 4px", fontSize: 28 }}>{book.title}</h1>
-          <div style={{ color: "var(--muted)", fontSize: 14 }}>
+          <div style={{ color: "var(--muted)", fontSize: 14, display: "flex", alignItems: "center", gap: 5 }}>
             {writer ? <Link href={`/writer/${writer.id}`} style={{ fontWeight: 700 }}>{displayAuthor(book)}</Link> : displayAuthor(book)}
+            {writer && <VerifiedBadge badge={writer.badge} size={15} />}
           </div>
           {book.dedication && (
             <div style={{ fontSize: 13, fontStyle: "italic", color: "var(--muted)", marginTop: 6 }}>
@@ -90,19 +96,19 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
             </div>
           )}
           <div className="meta-row">
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="eye" size={13} /> {fmtCount(book.views)} views</span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="heart" size={13} /> {fmtCount(book.likes)} likes</span>
-            {!isPdf && <span>{chs.length} chapters</span>}
-            {isPdf && <span>PDF book</span>}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="eye" size={13} /> {fmtCount(book.views)} {t.views}</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="heart" size={13} /> {fmtCount(book.likes)} {t.likes}</span>
+            {!isPdf && <span>{chs.length} {t.chapters}</span>}
+            {isPdf && <span>{t.pdfBook}</span>}
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
             {isPdf ? (
               <Link className="btn" href={book.pdf_url as string} target="_blank" rel="noreferrer">
-                Open PDF
+                {t.openPdf}
               </Link>
             ) : chs.length ? (
               <Link className="btn" href={`/read/${book.id}/0`}>
-                Start reading
+                {t.startReading}
               </Link>
             ) : null}
             <LikeButton bookId={book.id} initialLikes={book.likes} />
@@ -110,7 +116,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
           </div>
           {book.description && (
             <>
-              <h2 style={{ fontSize: 17, marginTop: 24 }}>Description</h2>
+              <h2 style={{ fontSize: 17, marginTop: 24 }}>{t.description}</h2>
               <p style={{ color: "var(--ink)", fontSize: 15 }}>{book.description}</p>
             </>
           )}
@@ -122,7 +128,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
       {!isPdf && chs.length > 0 && (
         <section className="section narrow" style={{ marginLeft: 0 }}>
           <div className="section-head">
-            <h2>Chapters ({chs.length})</h2>
+            <h2>{t.chapters} ({chs.length})</h2>
           </div>
           <ol className="chapter-list">
             {chs.map((c, i) => (

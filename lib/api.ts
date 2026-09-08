@@ -148,6 +148,14 @@ export async function followWriter(deviceId: string, writerId: string): Promise<
   }
 }
 
+export async function writerGoogleAuth(credential: string) {
+  return callApi<{ writer: WriterSession; token: string } | { error: string }>(
+    "/api/public/writers/google",
+    { method: "POST", headers: jsonHeaders, body: JSON.stringify({ credential }) },
+    15000
+  );
+}
+
 export async function unfollowWriter(deviceId: string, writerId: string): Promise<boolean> {
   try {
     const r = await fetch(
@@ -166,4 +174,165 @@ export function chaptersByBook(chapters: ApiChapter[]): Record<string, ApiChapte
   for (const c of chapters) (m[c.book_id] ||= []).push(c);
   for (const k of Object.keys(m)) m[k].sort((a, b) => a.position - b.position);
   return m;
+}
+
+// --- New books: published within the last 30 days (uses updated_at, the only
+// book date the public API exposes). Books never disappear — they just leave
+// this section; categories and other lists are unaffected.
+const NEW_DAYS = 30;
+export function isNewBook(b: Pick<ApiBook, "updated_at">, now: number = Date.now()): boolean {
+  if (!b.updated_at) return false;
+  const t = new Date(b.updated_at).getTime();
+  if (Number.isNaN(t)) return false;
+  const diff = now - t;
+  return diff >= 0 && diff <= NEW_DAYS * 24 * 3600 * 1000;
+}
+
+// --- Popular: strictly more than 1,000 views (live data, automatic) ---
+export const POPULAR_VIEWS = 1000;
+export function isPopularBook(b: Pick<ApiBook, "views">): boolean {
+  return bookViews(b) > POPULAR_VIEWS;
+}
+
+// --- Writer auth + studio (same contracts as the Android app) ---
+export type WriterSession = {
+  id: string;
+  username: string;
+  writer_name: string;
+  bio?: string;
+  avatar_url?: string | null;
+  follower_count?: number;
+  badge?: string;
+};
+
+type ApiResult<T> = { data: T | null; status: number; error?: string };
+
+async function callApi<T>(path: string, init: RequestInit, timeoutMs = 25000): Promise<ApiResult<T>> {
+  try {
+    const c = new AbortController();
+    const timer = setTimeout(() => c.abort(), timeoutMs);
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}${path}`, { ...init, signal: c.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+    const body = (await res.json().catch(() => null)) as T & { error?: string };
+    if (!res.ok) return { data: null, status: res.status, error: (body as { error?: string } | null)?.error || `http-${res.status}` };
+    return { data: body as T, status: res.status };
+  } catch {
+    return { data: null, status: 0, error: "network" };
+  }
+}
+
+const jsonHeaders = { "content-type": "application/json" };
+const authHeaders = (token: string) => ({ ...jsonHeaders, Authorization: `Bearer ${token}` });
+
+export type WriterAuthOk = { writer: WriterSession; token: string };
+export type WriterAuthFail = { error: string };
+type SignupRes = WriterAuthOk | { needs_verification: true; email: string; mail_sent?: boolean } | WriterAuthFail;
+type VerifyRes = WriterAuthOk | WriterAuthFail;
+type LoginRes = WriterAuthOk | { unverified: true; email: string } | WriterAuthFail;
+type SimpleRes = { ok: boolean; mail_sent?: boolean; retry_after?: number } | WriterAuthFail;
+
+export async function writerSignup(input: { username: string; writerName: string; email: string; password: string }): Promise<SignupRes | null> {
+  const r = await callApi<SignupRes & { error?: string }>("/api/public/writers/signup", {
+    method: "POST",
+    headers: jsonHeaders,
+    body: JSON.stringify({ username: input.username, writer_name: input.writerName, email: input.email, password: input.password }),
+  });
+  return r.data;
+}
+
+export async function verifyWriterCode(email: string, code: string): Promise<VerifyRes | null> {
+  const r = await callApi<VerifyRes & { error?: string }>(
+    "/api/public/writers/verify-code",
+    { method: "POST", headers: jsonHeaders, body: JSON.stringify({ email, code }) },
+    15000
+  );
+  return r.data;
+}
+
+export async function resendWriterCode(email: string): Promise<SimpleRes | null> {
+  const r = await callApi<SimpleRes & { error?: string; retry_after?: number }>(
+    "/api/public/writers/resend-code",
+    { method: "POST", headers: jsonHeaders, body: JSON.stringify({ email }) }
+  );
+  return r.data;
+}
+
+export async function writerLogin(
+  emailOrUsername: string,
+  password: string
+): Promise<LoginRes | null> {
+  const r = await callApi<LoginRes & { error?: string }>(
+    "/api/public/writers/login",
+    { method: "POST", headers: jsonHeaders, body: JSON.stringify({ email_or_username: emailOrUsername, password }) },
+    15000
+  );
+  if (!r.data) return null;
+  const d = r.data;
+  if ("writer" in d) return d;
+  if ("unverified" in d) return d;
+  if ("error" in d && d.error) return { error: d.error };
+  return null;
+}
+
+export async function verifyWriterToken(token: string) {
+  return callApi<{ writer: WriterSession } | { error: string }>(
+    "/api/public/writers/verify",
+    { method: "POST", headers: jsonHeaders, body: JSON.stringify({ token }) },
+    10000
+  );
+}
+
+export type WriterStory = {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  cover_url: string | null;
+  category: string;
+  views: number;
+  likes: number;
+  chapters_count: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export async function fetchMyStories(token: string) {
+  return callApi<WriterStory[]>("/api/writer/stories", { headers: authHeaders(token) }, 15000);
+}
+
+export async function createStory(
+  token: string,
+  input: { title: string; description: string; category: string; cover_url?: string }
+) {
+  return callApi<{ id: string; title: string; status: string } & Record<string, unknown>>("/api/writer/stories", {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ title: input.title, description: input.description, category: input.category, cover_url: input.cover_url || null }),
+  });
+}
+
+export async function createChapter(token: string, storyId: string, input: { title: string; body: string }) {
+  return callApi<{ id: string; title: string } & Record<string, unknown>>(`/api/writer/stories/${storyId}/chapters`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ title: input.title, body: input.body }),
+  }, 15000);
+}
+
+export async function uploadCover(file: File): Promise<{ url?: string; error?: string }> {
+  try {
+    if (file.size > 10 * 1024 * 1024) return { error: "too-large" };
+    const fd = new FormData();
+    fd.append("file", file);
+    const r = await fetch(`${API_BASE}/api/media`, { method: "POST", body: fd });
+    const d = (await r.json().catch(() => null)) as { url?: string; key?: string; error?: string } | null;
+    if (!r.ok || !d?.url) return { error: d?.error || `http-${r.status}` };
+    return { url: d.url };
+  } catch {
+    return { error: "network" };
+  }
 }

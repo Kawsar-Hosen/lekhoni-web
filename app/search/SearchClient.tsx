@@ -6,9 +6,9 @@ import BookCard from "@/components/BookCard";
 import { getBooks, getWriters, getCategories, type ApiBook, type ApiWriter, type ApiCategory } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
-export default function SearchClient() {
+export default function SearchClient({ initialQ = "" }: { initialQ?: string }) {
   const { t } = useLang();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialQ);
   const [debounced, setDebounced] = useState("");
   const [books, setBooks] = useState<ApiBook[]>([]);
   const [writers, setWriters] = useState<ApiWriter[]>([]);

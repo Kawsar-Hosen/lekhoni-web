@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Icon from "./Icon";
-import { useLang } from "@/lib/i18n";
+import { useLang, type DictKey } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 import { useTheme, type Theme } from "@/lib/theme";
-import type { DictKey } from "@/lib/i18n";
 
 const NAV: { href: string; key: DictKey }[] = [
   { href: "/", key: "home" },
@@ -16,26 +16,28 @@ const NAV: { href: string; key: DictKey }[] = [
   { href: "/search", key: "search" },
 ];
 
-const THEME_ORDER: Theme[] = ["system", "light", "dark"];
-
 export default function Header() {
   const { lang, setLang, t } = useLang();
+  const { session } = useAuth();
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [accountNote, setAccountNote] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
+  const [acctOpen, setAcctOpen] = useState(false);
 
-  const nextTheme = () => {
-    const i = THEME_ORDER.indexOf(theme);
-    setTheme(THEME_ORDER[(i + 1) % THEME_ORDER.length]);
+  const closeAll = () => {
+    setLangOpen(false);
+    setThemeOpen(false);
+    setAcctOpen(false);
   };
 
   return (
     <header className="site-header">
       <div className="bar">
         <Link href="/" className="brand" onClick={() => setOpen(false)}>
-          <span className="brand-mark">ল</span>
-          <span>Lekhoni Kahini</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/banner1.png" alt="লেখনী কাহিনী" className="brand-banner" />
         </Link>
         <nav className="nav-links" aria-label="Primary">
           {NAV.map((n) => (
@@ -48,20 +50,119 @@ export default function Header() {
             </Link>
           ))}
         </nav>
+        <form className="header-search" action="/search" method="get" role="search">
+          <div className="box">
+            <input name="q" placeholder={t("searchPh")} aria-label={t("search")} autoComplete="off" />
+            <button type="submit" aria-label={t("search")}>
+              <Icon name="search" size={16} />
+            </button>
+          </div>
+        </form>
         <div className="header-right">
-          <button
-            className="icon-btn"
-            onClick={() => setLang(lang === "en" ? "bn" : "en")}
-            title={t("language")}
-          >
-            {lang === "en" ? "বাং" : "EN"}
-          </button>
-          <button className="icon-btn" onClick={nextTheme} title={t("theme")} aria-label={t("theme")}>
-            <Icon name={theme === "light" ? "sun" : theme === "dark" ? "moon" : "system"} size={16} />
-          </button>
-          <button className="icon-btn" onClick={() => setAccountNote((v) => !v)} title={t("account")} aria-label={t("account")}>
-            <Icon name="user" size={16} />
-          </button>
+          <div style={{ position: "relative" }}>
+            <button
+              className="icon-btn"
+              onClick={() => { closeAll(); setLangOpen((v) => !v); }}
+              title={t("language")}
+              aria-label={t("language")}
+              aria-expanded={langOpen}
+            >
+              <Icon name="globe" size={16} />
+            </button>
+            {langOpen && (
+              <>
+                <div
+                  onClick={closeAll}
+                  style={{ position: "fixed", inset: 0, zIndex: 60, cursor: "default" }}
+                  aria-hidden="true"
+                />
+                <div className="card acct-menu more-menu">
+                  <div className="menu-label">{t("language")}</div>
+                  <button className={lang === "en" ? "menu-opt active" : "menu-opt"} onClick={() => { setLang("en"); closeAll(); window.location.reload(); }}>
+                    {t("langEnglish")} {lang === "en" && "✓"}
+                  </button>
+                  <button className={lang === "bn" ? "menu-opt active" : "menu-opt"} onClick={() => { setLang("bn"); closeAll(); window.location.reload(); }}>
+                    {t("langBangla")} {lang === "bn" && "✓"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+          <div style={{ position: "relative" }}>
+            <button
+              className="icon-btn"
+              onClick={() => { closeAll(); setThemeOpen((v) => !v); }}
+              title={t("theme")}
+              aria-label={t("theme")}
+              aria-expanded={themeOpen}
+            >
+              <Icon name={theme === "light" ? "sun" : theme === "dark" ? "moon" : "system"} size={16} />
+            </button>
+            {themeOpen && (
+              <>
+                <div
+                  onClick={closeAll}
+                  style={{ position: "fixed", inset: 0, zIndex: 60, cursor: "default" }}
+                  aria-hidden="true"
+                />
+                <div className="card acct-menu more-menu">
+                  <div className="menu-label">{t("theme")}</div>
+                  {(["system", "light", "dark"] as Theme[]).map((m) => (
+                    <button
+                      key={m}
+                      className={theme === m ? "menu-opt active" : "menu-opt"}
+                      onClick={() => { setTheme(m); closeAll(); }}
+                    >
+                      <Icon name={m === "light" ? "sun" : m === "dark" ? "moon" : "system"} size={15} />
+                      {t(m)} {theme === m && "✓"}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          {session ? (
+            <Link className="icon-btn" href="/account" title={session.writer.writer_name} aria-label={t("account")}>
+              {session.writer.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={session.writer.avatar_url} alt="" width={20} height={20} style={{ borderRadius: "50%", objectFit: "cover" }} />
+              ) : (
+                <Icon name="user" size={16} />
+              )}
+              <span className="hide-sm" style={{ maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {session.writer.writer_name}
+              </span>
+            </Link>
+          ) : (
+            <div style={{ position: "relative" }}>
+              <button
+                className="icon-btn"
+                onClick={() => { closeAll(); setAcctOpen((v) => !v); }}
+                title={t("account")}
+                aria-label={t("account")}
+                aria-expanded={acctOpen}
+              >
+                <Icon name="user" size={16} />
+              </button>
+              {acctOpen && (
+                <>
+                  <div
+                    onClick={closeAll}
+                    style={{ position: "fixed", inset: 0, zIndex: 60, cursor: "default" }}
+                    aria-hidden="true"
+                  />
+                  <div className="card acct-menu">
+                    <Link href="/login" onClick={closeAll}>
+                      <Icon name="user" size={15} /> {t("signIn")}
+                    </Link>
+                    <Link href="/register" onClick={closeAll}>
+                      <Icon name="edit" size={15} /> {t("signUp")}
+                    </Link>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
           <button
             className="icon-btn menu-btn"
             onClick={() => setOpen((v) => !v)}
@@ -71,13 +172,14 @@ export default function Header() {
           </button>
         </div>
       </div>
-      {accountNote && (
-        <div className="wrap" style={{ paddingBottom: 10 }}>
-          <div className="card" style={{ padding: "10px 14px", fontSize: 13, color: "var(--muted)" }}>
-            {t("accountSoon")}
-          </div>
+      <form className="header-search-mobile" action="/search" method="get" role="search">
+        <div className="box">
+          <input name="q" placeholder={t("searchPh")} aria-label={t("search")} autoComplete="off" />
+          <button type="submit" aria-label={t("search")}>
+            <Icon name="search" size={16} />
+          </button>
         </div>
-      )}
+      </form>
       {open && (
         <nav className="mobile-nav" aria-label="Mobile">
           {NAV.map((n) => (
@@ -85,6 +187,9 @@ export default function Header() {
               {t(n.key)}
             </Link>
           ))}
+          <Link href="/write" onClick={() => setOpen(false)}>
+            {t("writeStory")}
+          </Link>
         </nav>
       )}
     </header>

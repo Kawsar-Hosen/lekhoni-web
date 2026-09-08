@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { dict, type DictKey } from "@/lib/dict";
+import { getLang } from "@/lib/lang-server";
 
 export const metadata: Metadata = {
   title: "About",
@@ -6,23 +8,33 @@ export const metadata: Metadata = {
   alternates: { canonical: "/about" },
 };
 
-export default function AboutPage() {
+const NOTES: [DictKey, DictKey][] = [
+  ["aboutF1T", "aboutF1D"],
+  ["aboutF2T", "aboutF2D"],
+  ["aboutF3T", "aboutF3D"],
+];
+
+export default async function AboutPage() {
+  const lang = await getLang();
+  const t = dict[lang];
   return (
     <div className="narrow">
       <div className="section">
-        <h1 style={{ fontSize: 28, margin: "0 0 12px" }}>About Lekhoni Kahini</h1>
-        <div className="card" style={{ padding: 22 }}>
-          <p>
-            Lekhoni Kahini is a Bengali stories reading and writing platform. Read novels, poems and
-            fresh episodes online, download books for offline reading, and publish your own writing
-            with Writer Studio.
-          </p>
-          <p style={{ color: "var(--muted)" }}>
-            This website shows the same live catalogue as the Lekhoni Kahini Android app. Reader
-            accounts, writing and publishing happen inside the app.
-          </p>
-          <p style={{ color: "var(--muted)", fontSize: 13 }}>© 2026 Lekhoni Kahini · Kawsar Hosen · v1.1.0</p>
+        <h1 style={{ fontSize: 28, margin: "0 0 12px" }}>{t.aboutTitle}</h1>
+        <p className="about-hook">{t.aboutHook}</p>
+        <div className="about-notes">
+          {NOTES.map(([h, p], i) => (
+            <div key={h} className="about-note">
+              <span className="about-num">{i + 1}</span>
+              <div>
+                <h2>{t[h]}</h2>
+                <p>{t[p]}</p>
+              </div>
+            </div>
+          ))}
         </div>
+        <p className="about-closing">{t.aboutClosing}</p>
+        <p style={{ color: "var(--muted)", fontSize: 13 }}>© 2026 Lekhoni Kahini · Kawsar Hosen · v1.1.0</p>
       </div>
     </div>
   );

@@ -1,8 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import BookCard, { fmtCount } from "@/components/BookCard";
+import BookCard from "@/components/BookCard";
+import HomeWriters from "@/components/HomeWriters";
 import AdSlot from "@/components/AdSlot";
-import { getBooks, getChapters, getCategories, getWriters, chaptersByBook, displayAuthor, bookViews } from "@/lib/api";
+import { dict } from "@/lib/dict";
+import { getLang } from "@/lib/lang-server";
+import { getBooks, getCategories, getWriters, isNewBook, isPopularBook, bookViews } from "@/lib/api";
 
 export const revalidate = 3600;
 
@@ -22,71 +25,73 @@ function SectionHead({ title, href, more }: { title: string; href: string; more:
 }
 
 export default async function HomePage() {
-  const [books, chapters, categories, writers] = await Promise.all([
+  const lang = await getLang();
+  const t = dict[lang];
+  const [books, categories, writers] = await Promise.all([
     getBooks(),
-    getChapters(),
     getCategories(),
     getWriters(),
   ]);
   const all = books || [];
-  const byId = chaptersByBook(chapters || []);
-  const withChapters = (id: string) => byId[id] || [];
-
-  const featured = all.find((b) => b.featured) || all[0];
-  const fresh = [...all].sort((a, b) => String(b.updated_at || "").localeCompare(String(a.updated_at || ""))).slice(0, 12);
-  const popular = [...all].sort((a, b) => bookViews(b) - bookViews(a)).slice(0, 12);
-  const topWriters = [...(writers || [])].sort((a, b) => (b.follower_count || 0) - (a.follower_count || 0)).slice(0, 8);
+  const fresh = all
+    .filter((b) => isNewBook(b))
+    .sort((a, b) => String(b.updated_at || "").localeCompare(String(a.updated_at || "")));
+  const popular = all
+    .filter((b) => isPopularBook(b))
+    .sort((a, b) => bookViews(b) - bookViews(a))
+    .slice(0, 12);
+  const catCounts: Record<string, number> = {};
+  for (const b of all) {
+    const c = b.category || "";
+    if (c) catCounts[c] = (catCounts[c] || 0) + 1;
+  }
+  const topCats = Object.entries(catCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([name]) => ({ name, books: all.filter((b) => (b.category || "") === name).slice(0, 6) }))
+    .filter((c) => c.books.length > 0);
 
   return (
     <div className="wrap">
-      {featured && (
-        <section className="hero">
-          <div>
-            <span className="pill">Featured book</span>
-            <h1 style={{ marginTop: 10 }}>{featured.title}</h1>
-            <p>
-              {displayAuthor(featured)} · {featured.category || ""} · {fmtCount(featured.views)} views
-            </p>
-            <div style={{ display: "flex", gap: 10 }}>
-              <Link className="btn" href={featured.pdf_url ? `/book/${featured.id}` : withChapters(featured.id).length ? `/read/${featured.id}/0` : `/book/${featured.id}`}>
-                Read now
-              </Link>
-              <Link className="btn btn-ghost" href={`/book/${featured.id}`}>
-                Details
-              </Link>
-            </div>
+      <section className="hero">
+        <div>
+          <h1>{t.heroTitleA}<span className="hero-mark">{t.heroTitleHL}</span>{t.heroTitleB}</h1>
+          <p>{t.heroSub}</p>
+          <div className="actions">
+            <p className="hero-note">{t.writeEarnA}<span className="earn-hl">{t.writeEarnHL}</span>{t.writeEarnB}</p>
+            <Link className="btn btn-premium" href="/write">
+              {t.startWriting}
+            </Link>
           </div>
-          <div>
-            {featured.cover_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={featured.cover_url} alt={featured.title} className="cover" loading="eager" />
-            ) : null}
+        </div>
+      </section>
+
+      {fresh.length > 0 && (
+        <section className="section">
+          <SectionHead title={t.newBooks} href="/books" more={t.viewAll} />
+          <div className="grid-books">
+            {fresh.slice(0, 6).map((b) => (
+              <BookCard key={b.id} book={b} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <AdSlot slot="home-feed" />
+
+      {popular.length > 0 && (
+        <section className="section">
+          <SectionHead title={t.popularBooks} href="/books" more={t.viewAll} />
+          <div className="grid-books">
+            {popular.map((b) => (
+              <BookCard key={b.id} book={b} />
+            ))}
           </div>
         </section>
       )}
 
       <section className="section">
-        <SectionHead title="New books" href="/books" more="View all" />
-        <div className="grid-books">
-          {fresh.slice(0, 6).map((b) => (
-            <BookCard key={b.id} book={b} />
-          ))}
-        </div>
-      </section>
-
-      <AdSlot slot="home-feed" />
-
-      <section className="section">
-        <SectionHead title="Popular books" href="/books" more="View all" />
-        <div className="grid-books">
-          {popular.slice(0, 6).map((b) => (
-            <BookCard key={b.id} book={b} />
-          ))}
-        </div>
-      </section>
-
-      <section className="section">
-        <SectionHead title="Categories" href="/categories" more="View all" />
+        <SectionHead title={t.categories} href="/categories" more={t.viewAll} />
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {(categories || []).slice(0, 12).map((c) => (
             <Link key={c.id} href={`/books?category=${encodeURIComponent(c.name)}`} className="chip">
@@ -97,32 +102,37 @@ export default async function HomePage() {
       </section>
 
       <section className="section">
-        <SectionHead title="Popular writers" href="/writers" more="View all" />
-        <div className="grid-writers">
-          {topWriters.slice(0, 4).map((w) => (
-            <Link key={w.id} href={`/writer/${w.id}`} className="card writer-card">
-              {w.avatar_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={w.avatar_url} alt={w.writer_name} className="avatar" loading="lazy" />
-              ) : (
-                <div className="avatar-fallback">{w.writer_name[0]?.toUpperCase()}</div>
-              )}
-              <div className="wname">{w.writer_name}</div>
-              <div className="wsub">{fmtCount(w.follower_count || 0)} followers</div>
-            </Link>
-          ))}
-        </div>
+        <SectionHead title={t.allWriters} href="/writers" more={t.viewAll} />
+        <HomeWriters writers={writers || []} />
       </section>
 
+      {topCats.length > 0 && topCats.map((c) => (
+        <section className="section" key={c.name}>
+          <SectionHead title={c.name} href={`/books?category=${encodeURIComponent(c.name)}`} more={t.viewAll} />
+          <div className="rail">
+            {c.books.map((b) => (
+              <BookCard key={b.id} book={b} />
+            ))}
+          </div>
+        </section>
+      ))}
+
       <section className="section">
-        <div className="card cta">
-          <h2>Love to write?</h2>
-          <p>
-            Publish your own stories with Writer Studio in the Lekhoni Kahini app.
-          </p>
-          <Link className="btn" href="/about">
-            Get the app
-          </Link>
+        <div className="card gplay-card">
+          <span className="coming-pill">
+            <span className="pulse-dot" />
+            {t.comingSoon}
+          </span>
+          <p>{t.gplayBlurbA}<span className="hero-mark mark-inline">{t.gplayBlurbHL}</span>{t.gplayBlurbB}</p>
+          <a
+            href="https://play.google.com/store/apps/details?id=com.lekhoni.kahini"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Google Play"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/google-play-badge.png" alt="Get it on Google Play" height={80} />
+          </a>
         </div>
       </section>
     </div>

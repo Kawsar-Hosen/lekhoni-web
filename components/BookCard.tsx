@@ -21,13 +21,13 @@ export default function BookCard({ book }: { book: ApiBook }) {
           src={book.cover_url}
           alt={book.title}
           width={300}
-          height={400}
+          height={450}
           className="cover"
           loading="lazy"
           sizes="(max-width: 640px) 33vw, (max-width: 900px) 25vw, 16vw"
         />
       ) : (
-        <div className="cover" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }}>
+        <div className="cover cover-fallback" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }}>
           <span style={{ fontWeight: 700, fontSize: 13, textAlign: "center" }}>{book.title}</span>
         </div>
       )}

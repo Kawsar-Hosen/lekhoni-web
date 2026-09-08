@@ -2,7 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import BookCard, { fmtCount } from "@/components/BookCard";
+import VerifiedBadge from "@/components/VerifiedBadge";
 import { getWriter, getWriters, getBooks } from "@/lib/api";
+import { dict } from "@/lib/dict";
+import { getLang } from "@/lib/lang-server";
 
 export const revalidate = 1800;
 
@@ -29,6 +32,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function WriterPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const lang = await getLang();
+  const t = dict[lang];
   const [w, books] = await Promise.all([getWriter(id), getBooks()]);
   if (!w) notFound();
   const mine = (books || []).filter(
@@ -50,21 +55,24 @@ export default async function WriterPage({ params }: { params: Promise<{ id: str
             {w.writer_name[0]?.toUpperCase()}
           </div>
         )}
-        <h1 style={{ margin: "12px 0 2px", fontSize: 26 }}>{w.writer_name}</h1>
+        <h1 style={{ margin: "12px 0 2px", fontSize: 26, display: "flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
+          {w.writer_name}
+          <VerifiedBadge badge={w.badge} size={22} />
+        </h1>
         <div style={{ color: "var(--muted)", fontSize: 13 }}>@{w.username}</div>
         {w.bio && <p style={{ maxWidth: 520, margin: "12px auto 0", fontSize: 14 }}>{w.bio}</p>}
         <div style={{ display: "flex", gap: 24, justifyContent: "center", marginTop: 18, flexWrap: "wrap" }}>
           <div>
             <div style={{ fontWeight: 800, fontSize: 18 }}>{mine.length}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>Published books</div>
+            <div style={{ fontSize: 12, color: "var(--muted)" }}>{t.publishedBooks}</div>
           </div>
           <div>
             <div style={{ fontWeight: 800, fontSize: 18 }}>{fmtCount(reads)}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>Total reads</div>
+            <div style={{ fontSize: 12, color: "var(--muted)" }}>{t.totalReads}</div>
           </div>
           <div>
             <div style={{ fontWeight: 800, fontSize: 18 }}>{fmtCount(w.follower_count || 0)}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>Followers</div>
+            <div style={{ fontSize: 12, color: "var(--muted)" }}>{t.followers}</div>
           </div>
         </div>
       </div>
@@ -72,7 +80,7 @@ export default async function WriterPage({ params }: { params: Promise<{ id: str
       <section className="section">
         <div className="section-head">
           <h2>
-            Stories by {w.writer_name} ({mine.length})
+            {t.storiesBy} {w.writer_name} ({mine.length})
           </h2>
         </div>
         {mine.length ? (
@@ -82,7 +90,7 @@ export default async function WriterPage({ params }: { params: Promise<{ id: str
             ))}
           </div>
         ) : (
-          <div className="empty">This writer has not published any stories yet.</div>
+          <div className="empty">{t.noStories}</div>
         )}
       </section>
       <div style={{ marginTop: 16 }}>

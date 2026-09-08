@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getBooks, getCategories } from "@/lib/api";
+import { dict } from "@/lib/dict";
+import { getLang } from "@/lib/lang-server";
 
 export const revalidate = 3600;
 
@@ -11,6 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default async function CategoriesPage() {
+  const lang = await getLang();
+  const t = dict[lang];
   const [cats, books] = await Promise.all([getCategories(), getBooks()]);
   const counts: Record<string, number> = {};
   for (const b of books || []) {
@@ -21,7 +25,7 @@ export default async function CategoriesPage() {
     <div className="wrap">
       <div className="section">
         <div className="section-head">
-          <h2>Categories</h2>
+          <h2>{t.categories}</h2>
         </div>
         <div className="grid-writers">
           {(cats || []).map((c) => (
@@ -43,7 +47,7 @@ export default async function CategoriesPage() {
               />
               <span>
                 <span style={{ display: "block", fontWeight: 700 }}>{c.name}</span>
-                <span style={{ fontSize: 12, color: "var(--muted)" }}>{counts[c.name] || 0} books</span>
+                <span style={{ fontSize: 12, color: "var(--muted)" }}>{counts[c.name] || 0} {t.booksCount}</span>
               </span>
             </Link>
           ))}

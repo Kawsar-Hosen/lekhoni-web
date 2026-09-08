@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Lekhoni Kahini — Website
 
-## Getting Started
+Separate public website for Lekhoni Kahini (Bengali stories reading platform).
+Independent codebase — the Android app (`/root/Lekhoni`) is never touched by this project.
 
-First, run the development server:
+## Stack
+- Next.js 16 (App Router) + TypeScript + plain CSS (no Tailwind)
+- Backend: existing production Cloudflare Worker API (no separate backend)
+- Hosting target: Cloudflare Pages (deploy only on explicit approval)
 
+## Backend
+- Base URL: `https://lekhoni-admin-api.smdkawsar2.workers.dev` (see `lib/api.ts`)
+- Public read endpoints only: books, chapters, categories, writers, home-sections,
+  book detail, comments (read/post), likes, follows, deletion-requests
+- No admin endpoints, no secrets. No `.env` values are required to run.
+
+## Conventions
+- Default UI language: English (`lib/i18n.tsx`, persisted `lk-lang`, no auto-detect)
+- Theme: light / dark / system (`lib/theme.tsx`, persisted `lk-theme`)
+- Guest device id: `lib/device.ts` (localStorage, sent as `device_key`)
+- AdSense: `components/AdSlot.tsx` renders nothing (`ADS_ENABLED=false`).
+  Enable only after explicit approval + AdSense approval.
+
+## Commands
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # local dev
+npm run build    # production build check (required before any deploy)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy
+DO NOT deploy until explicitly approved with "DEPLOY OK".

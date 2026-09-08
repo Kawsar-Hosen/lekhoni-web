@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import AdSlot from "@/components/AdSlot";
+import Icon from "@/components/Icon";
 import Comments from "@/components/Comments";
 import { FollowButton, LikeButton } from "@/components/Engage";
 import { fmtCount } from "@/components/BookCard";
@@ -89,8 +90,8 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
             </div>
           )}
           <div className="meta-row">
-            <span>👁 {fmtCount(book.views)} views</span>
-            <span>♥ {fmtCount(book.likes)} likes</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="eye" size={13} /> {fmtCount(book.views)} views</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="heart" size={13} /> {fmtCount(book.likes)} likes</span>
             {!isPdf && <span>{chs.length} chapters</span>}
             {isPdf && <span>PDF book</span>}
           </div>

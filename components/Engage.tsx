@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Icon from "./Icon";
 import { setLike, followWriter, unfollowWriter } from "@/lib/api";
 import { getDeviceId } from "@/lib/device";
 import { useLang } from "@/lib/i18n";
@@ -31,7 +32,7 @@ export function LikeButton({ bookId, initialLikes }: { bookId: string; initialLi
 
   return (
     <button className="icon-btn" onClick={toggle} aria-pressed={liked} style={liked ? { borderColor: "var(--accent)", color: "var(--accent)" } : undefined}>
-      ♥ {fmtCount(likes)} · {liked ? t("unlike") : t("like")}
+      <Icon name="heart" size={15} /> {fmtCount(likes)} · {liked ? t("unlike") : t("like")}
     </button>
   );
 }
@@ -54,7 +55,7 @@ export function FollowButton({ writerId, writerName }: { writerId: string | null
 
   return (
     <button className="icon-btn" onClick={toggle} title={writerName}>
-      {done ? `✓ ${t("unfollow")}` : `+ ${t("follow")}`}
+      <Icon name={done ? "userCheck" : "userPlus"} size={15} /> {done ? t("unfollow") : t("follow")}
     </button>
   );
 }

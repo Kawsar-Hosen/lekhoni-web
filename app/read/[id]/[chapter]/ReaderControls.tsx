@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Icon from "@/components/Icon";
 import { useLang } from "@/lib/i18n";
 
 export default function ReaderControls({ bookId, index, total }: { bookId: string; index: number; total: number }) {
@@ -21,19 +22,19 @@ export default function ReaderControls({ bookId, index, total }: { bookId: strin
           A＋
         </button>
         <Link className="icon-btn" href={`/book/${bookId}`}>
-          ← {t("backToBook")}
+          <Icon name="chevL" size={14} /> {t("backToBook")}
         </Link>
       </div>
       <style>{`.reader{--read-size:${size}px}`}</style>
       <div className="reader-bar">
         {index > 0 ? (
           <Link className="btn btn-ghost" href={`/read/${bookId}/${index - 1}`}>
-            ← {t("prevChapter")}
+            <Icon name="chevL" size={15} /> {t("prevChapter")}
           </Link>
         ) : null}
         {index < total - 1 ? (
           <Link className="btn" href={`/read/${bookId}/${index + 1}`}>
-            {t("nextChapter")} →
+            {t("nextChapter")} <Icon name="chevR" size={15} />
           </Link>
         ) : null}
       </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import Icon from "./Icon";
 import { useLang } from "@/lib/i18n";
 import { useTheme, type Theme } from "@/lib/theme";
 import type { DictKey } from "@/lib/i18n";
@@ -55,18 +56,18 @@ export default function Header() {
           >
             {lang === "en" ? "বাং" : "EN"}
           </button>
-          <button className="icon-btn" onClick={nextTheme} title={t("theme")}>
-            {theme === "light" ? "☀" : theme === "dark" ? "☾" : "◐"}
+          <button className="icon-btn" onClick={nextTheme} title={t("theme")} aria-label={t("theme")}>
+            <Icon name={theme === "light" ? "sun" : theme === "dark" ? "moon" : "system"} size={16} />
           </button>
-          <button className="icon-btn" onClick={() => setAccountNote((v) => !v)} title={t("account")}>
-            👤
+          <button className="icon-btn" onClick={() => setAccountNote((v) => !v)} title={t("account")} aria-label={t("account")}>
+            <Icon name="user" size={16} />
           </button>
           <button
             className="icon-btn menu-btn"
             onClick={() => setOpen((v) => !v)}
             aria-label="Menu"
           >
-            ☰
+            <Icon name={open ? "x" : "menu"} size={16} />
           </button>
         </div>
       </div>

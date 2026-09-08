@@ -99,7 +99,8 @@ img { display: block; max-width: 100%; }
 /* Sections & cards */
 .section { margin-top: 40px; }
 .section-head { display: flex; align-items: baseline; gap: 4px 12px; margin-bottom: 16px; flex-wrap: wrap; }
-.section-head h2 { margin: 0; font-size: 20px; font-weight: 800; }
+.section-head h2 { margin: 0; font-size: 20px; font-weight: 800; position: relative; padding-left: 12px; }
+.section-head h2::before { content: ""; position: absolute; left: 0; top: 5px; bottom: 5px; width: 3px; border-radius: 2px; background: var(--accent); }
 .section-head a { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; }
 .grid-books { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
 .grid-writers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
@@ -126,10 +127,10 @@ img { display: block; max-width: 100%; }
 }
 .chip:hover { border-color: var(--accent); color: var(--accent); }
 .writer-card { padding: 20px 14px 18px; text-align: center; }
-.avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; margin: 0 auto; background: var(--bg-soft); }
+.avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; margin: 0 auto; background: var(--bg-soft); border: 2px solid var(--line); }
 .avatar-fallback {
   width: 72px; height: 72px; border-radius: 50%; margin: 0 auto; background: var(--accent-soft);
-  color: var(--accent); font-size: 26px; font-weight: 800;
+  color: var(--accent); font-size: 26px; font-weight: 800; border: 2px solid var(--line);
   display: flex; align-items: center; justify-content: center;
 }
 .writer-card .wname { font-weight: 700; margin-top: 10px; font-size: 15px; line-height: 1.4; }

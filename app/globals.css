@@ -42,6 +42,11 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 img { display: block; max-width: 100%; }
+::selection { background: var(--accent-soft); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
 
 .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
 .narrow { max-width: 720px; margin: 0 auto; padding: 0 20px; }
@@ -71,8 +76,8 @@ img { display: block; max-width: 100%; }
 .header-right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
 .icon-btn {
   border: 1px solid var(--line); background: var(--card); color: var(--ink);
-  border-radius: 8px; padding: 7px 10px; font-size: 13px; font-weight: 700; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 8px; padding: 9px 12px; font-size: 13px; font-weight: 700; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px;
   transition: border-color 0.15s;
 }
 .icon-btn:hover { border-color: var(--accent); }
@@ -140,7 +145,7 @@ img { display: block; max-width: 100%; }
 .hero .cover { width: 100%; max-width: 300px; border-radius: 12px; border: 1px solid var(--line); justify-self: end; }
 
 /* Reader */
-.reader { font-family: var(--font-read); font-size: var(--read-size, 18px); line-height: 2; }
+.reader { font-family: var(--font-read); font-size: var(--read-size, 18px); line-height: 2; max-width: 68ch; margin-left: auto; margin-right: auto; }
 .reader p { margin: 0 0 1.2em; }
 .reader-bar {
   position: sticky; bottom: 16px; display: flex; gap: 8px; justify-content: center;
@@ -166,6 +171,9 @@ img { display: block; max-width: 100%; }
   .detail { grid-template-columns: 150px 1fr; gap: 18px; }
 }
 @media (max-width: 640px) {
+  .brand span:last-child { display: none; }
+  .hero h1 { font-size: 26px; }
+  .hero { padding: 28px 0 4px; }
   .nav-links { display: none; }
   .menu-btn { display: inline-flex; }
   .grid-books { grid-template-columns: repeat(3, 1fr); gap: 12px; }

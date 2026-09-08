@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import BookCard, { fmtCount } from "@/components/BookCard";
 import AdSlot from "@/components/AdSlot";
-import { getBooks, getChapters, getCategories, getWriters, getHomeSections, chaptersByBook, displayAuthor, bookViews } from "@/lib/api";
+import { getBooks, getChapters, getCategories, getWriters, chaptersByBook, displayAuthor, bookViews } from "@/lib/api";
 
 export const revalidate = 3600;
 
@@ -22,12 +22,11 @@ function SectionHead({ title, href, more }: { title: string; href: string; more:
 }
 
 export default async function HomePage() {
-  const [books, chapters, categories, writers, sections] = await Promise.all([
+  const [books, chapters, categories, writers] = await Promise.all([
     getBooks(),
     getChapters(),
     getCategories(),
     getWriters(),
-    getHomeSections(),
   ]);
   const all = books || [];
   const byId = chaptersByBook(chapters || []);
@@ -114,8 +113,6 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
-
-      {sections && sections.sections.length > 0 && <div style={{ display: "none" }}>{sections.sections.length}</div>}
 
       <section className="section">
         <div className="card" style={{ padding: 28, textAlign: "center" }}>

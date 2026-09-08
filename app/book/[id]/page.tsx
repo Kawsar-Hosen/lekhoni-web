@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
-function BookJsonLd({ book, chapters }: { book: NonNullable<Awaited<ReturnType<typeof getBook>>>; chapters: number }) {
+function BookJsonLd({ book }: { book: NonNullable<Awaited<ReturnType<typeof getBook>>> }) {
   const data = {
     "@context": "https://schema.org",
     "@type": "Book",
@@ -41,10 +41,7 @@ function BookJsonLd({ book, chapters }: { book: NonNullable<Awaited<ReturnType<t
     author: { "@type": "Person", name: displayAuthor(book) },
     ...(book.cover_url ? { image: book.cover_url } : {}),
     ...(book.description ? { description: book.description.slice(0, 500) } : {}),
-    numberOfPages: undefined,
-    aggregateRating: undefined,
   };
-  void chapters;
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />;
 }
 
@@ -61,7 +58,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="wrap">
-      <BookJsonLd book={book} chapters={chs.length} />
+      <BookJsonLd book={book} />
       <div className="detail">
         <div>
           {book.cover_url ? (

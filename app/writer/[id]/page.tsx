@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import BookCard, { fmtCount } from "@/components/BookCard";
-import { getWriter, getWriters, getBooks, displayAuthor } from "@/lib/api";
+import { getWriter, getWriters, getBooks } from "@/lib/api";
 
 export const revalidate = 1800;
 
@@ -82,7 +82,7 @@ export default async function WriterPage({ params }: { params: Promise<{ id: str
             ))}
           </div>
         ) : (
-          <div className="empty">This writer has not published any stories yet. {displayAuthor({ author: w.writer_name, author_name: "" })}</div>
+          <div className="empty">This writer has not published any stories yet.</div>
         )}
       </section>
       <div style={{ marginTop: 16 }}>

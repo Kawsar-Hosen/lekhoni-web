@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useLang } from "@/lib/i18n";
 
-const API = "https://lekhoni-admin-api.smdkawsar2.workers.dev";
+const API = "/backend";
 
 export default function DeleteRequestPage() {
   const { t } = useLang();

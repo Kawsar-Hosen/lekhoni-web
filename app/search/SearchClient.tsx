@@ -67,7 +67,10 @@ export default function SearchClient({ initialQ = "" }: { initialQ?: string }) {
         style={{ maxWidth: 520 }}
       />
       {!ready ? (
-        <div className="empty">…</div>
+        <div className="loading-wrap">
+          <span className="spinner" />
+          {t("loading")}
+        </div>
       ) : !searched ? null : bookHits.length + writerHits.length + catHits.length === 0 ? (
         <div className="empty">{t("noResults")}</div>
       ) : (

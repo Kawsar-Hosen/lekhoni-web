@@ -3,6 +3,9 @@
 
 export const API_BASE = 'https://lekhoni-admin-api.smdkawsar2.workers.dev';
 
+// Browser uses the same-origin /backend proxy (CORS-safe); server fetches direct.
+const base = () => (typeof window === "undefined" ? API_BASE : "/backend");
+
 export const REVALIDATE_HOME = 3600; // 1h
 export const REVALIDATE_BOOK = 1800; // 30m
 export const REVALIDATE_LIST = 3600;
@@ -55,7 +58,7 @@ export type HomeSections = {
 
 async function get<T>(path: string, revalidate: number): Promise<T | null> {
   try {
-    const r = await fetch(`${API_BASE}${path}`, { next: { revalidate } });
+    const r = await fetch(`${base()}${path}`, { next: { revalidate } });
     if (!r.ok) return null;
     return (await r.json()) as T;
   } catch {
@@ -107,7 +110,7 @@ export async function postComment(
   body: string
 ): Promise<{ ok: boolean; needsApproval?: boolean; error?: string }> {
   try {
-    const r = await fetch(`${API_BASE}/api/public/books/${bookId}/comments`, {
+    const r = await fetch(`${base()}/api/public/books/${bookId}/comments`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ device_id: deviceId, name: name.slice(0, 50), body: body.slice(0, 1000) }),
@@ -122,7 +125,7 @@ export async function postComment(
 
 export async function setLike(bookId: string, deviceId: string, value: boolean): Promise<number> {
   try {
-    const r = await fetch(`${API_BASE}/api/public/books/${bookId}/like`, {
+    const r = await fetch(`${base()}/api/public/books/${bookId}/like`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ device_id: deviceId, value }),
@@ -136,7 +139,7 @@ export async function setLike(bookId: string, deviceId: string, value: boolean):
 
 export async function followWriter(deviceId: string, writerId: string): Promise<boolean> {
   try {
-    const r = await fetch(`${API_BASE}/api/public/follows`, {
+    const r = await fetch(`${base()}/api/public/follows`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ device_id: deviceId, writer_id: writerId }),
@@ -159,7 +162,7 @@ export async function writerGoogleAuth(credential: string) {
 export async function unfollowWriter(deviceId: string, writerId: string): Promise<boolean> {
   try {
     const r = await fetch(
-      `${API_BASE}/api/public/follows/${encodeURIComponent(writerId)}?device_id=${encodeURIComponent(deviceId)}`,
+      `${base()}/api/public/follows/${encodeURIComponent(writerId)}?device_id=${encodeURIComponent(deviceId)}`,
       { method: "DELETE" }
     );
     const d = (await r.json().catch(() => null)) as { ok?: boolean } | null;
@@ -213,7 +216,7 @@ async function callApi<T>(path: string, init: RequestInit, timeoutMs = 25000): P
     const timer = setTimeout(() => c.abort(), timeoutMs);
     let res: Response;
     try {
-      res = await fetch(`${API_BASE}${path}`, { ...init, signal: c.signal });
+      res = await fetch(`${base()}${path}`, { ...init, signal: c.signal });
     } finally {
       clearTimeout(timer);
     }
@@ -304,6 +307,83 @@ export async function fetchMyStories(token: string) {
   return callApi<WriterStory[]>("/api/writer/stories", { headers: authHeaders(token) }, 15000);
 }
 
+export type WriterDashboard = {
+  stories: number;
+  totalViews: number;
+  followers: number;
+  published: number;
+  pending: number;
+  totalLikes?: number;
+  todayViews: number;
+  weekViews: number;
+  monthViews: number;
+};
+
+export async function fetchWriterDashboard(token: string) {
+  return callApi<WriterDashboard>("/api/writer/dashboard", { headers: authHeaders(token) }, 15000);
+}
+
+export async function submitStoryForReview(token: string, storyId: string) {
+  return callApi<{ ok: boolean; status?: string } | { error: string }>(
+    `/api/writer/stories/${storyId}/submit`,
+    { method: "POST", headers: authHeaders(token) },
+    15000
+  );
+}
+
+export async function deleteStory(token: string, storyId: string) {
+  return callApi<{ ok: boolean } | { error: string }>(
+    `/api/writer/stories/${storyId}`,
+    { method: "DELETE", headers: authHeaders(token) },
+    15000
+  );
+}
+
+export type StoryDetail = {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  category?: string;
+  cover_url?: string | null;
+  chapters?: { id: string; title: string; body?: string; position: number }[];
+};
+
+export async function fetchStoryDetail(token: string, storyId: string) {
+  return callApi<StoryDetail>(`/api/writer/stories/${storyId}`, { headers: authHeaders(token) }, 15000);
+}
+
+export async function updateStory(
+  token: string,
+  storyId: string,
+  input: { title?: string; description?: string; category?: string; cover_url?: string }
+) {
+  return callApi<{ ok: boolean } | { error: string }>(
+    `/api/writer/stories/${storyId}`,
+    { method: "PUT", headers: authHeaders(token), body: JSON.stringify(input) },
+    15000
+  );
+}
+
+export async function addStoryChapter(token: string, storyId: string, input: { title: string; body: string }) {
+  return callApi<{ id: string } | { error: string }>(
+    `/api/writer/stories/${storyId}/chapters`,
+    { method: "POST", headers: authHeaders(token), body: JSON.stringify(input) },
+    15000
+  );
+}
+
+export async function updateWriterProfile(
+  token: string,
+  input: { writer_name?: string; username?: string; bio?: string; avatar_url?: string }
+) {
+  return callApi<{ ok: boolean } | { error: string }>(
+    "/api/writer/profile",
+    { method: "PUT", headers: authHeaders(token), body: JSON.stringify(input) },
+    15000
+  );
+}
+
 export async function createStory(
   token: string,
   input: { title: string; description: string; category: string; cover_url?: string }
@@ -328,7 +408,7 @@ export async function uploadCover(file: File): Promise<{ url?: string; error?: s
     if (file.size > 10 * 1024 * 1024) return { error: "too-large" };
     const fd = new FormData();
     fd.append("file", file);
-    const r = await fetch(`${API_BASE}/api/media`, { method: "POST", body: fd });
+    const r = await fetch(`${base()}/api/media`, { method: "POST", body: fd });
     const d = (await r.json().catch(() => null)) as { url?: string; key?: string; error?: string } | null;
     if (!r.ok || !d?.url) return { error: d?.error || `http-${r.status}` };
     return { url: d.url };

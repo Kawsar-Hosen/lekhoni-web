@@ -8,6 +8,15 @@ const nextConfig: NextConfig = {
     ],
     formats: ["image/avif", "image/webp"],
   },
+  async rewrites() {
+    return [
+      {
+        // Same-origin proxy → bypasses browser CORS (backend only allows admin origin).
+        source: "/backend/:path*",
+        destination: "https://lekhoni-admin-api.smdkawsar2.workers.dev/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

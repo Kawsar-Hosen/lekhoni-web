@@ -31,8 +31,16 @@ export function LikeButton({ bookId, initialLikes }: { bookId: string; initialLi
   };
 
   return (
-    <button className="icon-btn" onClick={toggle} aria-pressed={liked} style={liked ? { borderColor: "var(--accent)", color: "var(--accent)" } : undefined}>
-      <Icon name="heart" size={15} /> {fmtCount(likes)} · {liked ? t("unlike") : t("like")}
+    <button
+      className={`icon-btn like-btn${liked ? " liked" : ""}`}
+      onClick={toggle}
+      aria-pressed={liked}
+      style={liked ? { borderColor: "#ef4444", color: "#ef4444" } : undefined}
+    >
+      <span key={String(liked)} className="like-ic">
+        <Icon name="heart" size={15} />
+      </span>{" "}
+      {fmtCount(likes)} · {liked ? t("unlike") : t("like")}
     </button>
   );
 }

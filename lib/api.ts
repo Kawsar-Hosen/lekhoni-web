@@ -6,9 +6,9 @@ export const API_BASE = 'https://lekhoni-admin-api.smdkawsar2.workers.dev';
 // Browser uses the same-origin /backend proxy (CORS-safe); server fetches direct.
 const base = () => (typeof window === "undefined" ? API_BASE : "/backend");
 
-export const REVALIDATE_HOME = 3600; // 1h
-export const REVALIDATE_BOOK = 1800; // 30m
-export const REVALIDATE_LIST = 3600;
+export const REVALIDATE_HOME = 300; // 5m
+export const REVALIDATE_BOOK = 600; // 10m
+export const REVALIDATE_LIST = 300;
 
 export type ApiBook = {
   id: string;
@@ -23,6 +23,7 @@ export type ApiBook = {
   category?: string;
   color?: string;
   accent?: string;
+  visible_on?: string;
   is_new?: boolean;
   featured?: boolean;
   pdf_url?: string;
@@ -39,7 +40,7 @@ export type ApiChapter = {
   minutes?: number;
 };
 
-export type ApiCategory = { id: string; name: string; icon: string; color: string; cover_url: string | null };
+export type ApiCategory = { id: string; name: string; icon: string; color: string; cover_url: string | null; visible_on?: string };
 
 export type ApiWriter = {
   id: string;
@@ -50,6 +51,10 @@ export type ApiWriter = {
   follower_count?: number;
   badge?: string;
 };
+
+// Visibility: 'app' | 'website' | 'both'. Website shows website+both (app filters after its update).
+export type VisibleOn = "app" | "website" | "both";
+export const webVisible = <T extends { visible_on?: string }>(x: T) => (x.visible_on || "both") !== "app";
 
 export type HomeSections = {
   sections: { key: string; title: string; books: ApiBook[] }[];
@@ -72,14 +77,14 @@ export const displayAuthor = (b: Pick<ApiBook, 'author_name' | 'author'>) =>
 export const bookViews = (b: Pick<ApiBook, 'views'>): number =>
   typeof b.views === 'number' ? b.views : parseInt(String(b.views).replace(/[^0-9]/g, ''), 10) || 0;
 
-export const getBooks = () => get<ApiBook[]>('/api/public/books', REVALIDATE_LIST);
-export const getChapters = () => get<ApiChapter[]>('/api/public/chapters', REVALIDATE_LIST);
-export const getCategories = () => get<ApiCategory[]>('/api/public/categories', REVALIDATE_LIST);
+export const getBooks = async () => ((await get<ApiBook[]>('/api/public/books?scope=all', REVALIDATE_LIST)) || []).filter(webVisible);
+export const getChapters = () => get<ApiChapter[]>('/api/public/chapters?scope=all', REVALIDATE_LIST);
+export const getCategories = async () => ((await get<ApiCategory[]>('/api/public/categories?scope=all', REVALIDATE_LIST)) || []).filter(webVisible);
 export const getWriters = () => get<ApiWriter[]>('/api/public/writers', REVALIDATE_LIST);
-export const getHomeSections = () => get<HomeSections>('/api/home-sections', REVALIDATE_HOME);
+export const getHomeSections = () => get<HomeSections>('/api/home-sections?scope=all', REVALIDATE_HOME);
 
 export async function getBook(id: string) {
-  const b = await get<ApiBook & { chapters: ApiChapter[] }>(`/api/public/books/${id}`, REVALIDATE_BOOK);
+  const b = await get<ApiBook & { chapters: ApiChapter[] }>(`/api/public/books/${id}?scope=all`, REVALIDATE_BOOK);
   if (!b) return null;
   const chs = [...(b.chapters || [])].sort((a, c) => a.position - c.position);
   return { ...b, chapters: chs };
@@ -107,13 +112,14 @@ export async function postComment(
   bookId: string,
   deviceId: string,
   name: string,
-  body: string
+  body: string,
+  avatarUrl?: string
 ): Promise<{ ok: boolean; needsApproval?: boolean; error?: string }> {
   try {
     const r = await fetch(`${base()}/api/public/books/${bookId}/comments`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ device_id: deviceId, name: name.slice(0, 50), body: body.slice(0, 1000) }),
+      body: JSON.stringify({ device_id: deviceId, name: name.slice(0, 50), body: body.slice(0, 1000), avatar_url: (avatarUrl || "").slice(0, 2048) }),
     });
     const d = (await r.json().catch(() => null)) as { ok?: boolean; needs_approval?: boolean; error?: string } | null;
     if (!d) return { ok: false, error: "network" };
@@ -123,15 +129,58 @@ export async function postComment(
   }
 }
 
-export async function setLike(bookId: string, deviceId: string, value: boolean): Promise<number> {
+export async function updateComment(
+  bookId: string,
+  commentId: string,
+  deviceId: string,
+  body: string
+): Promise<boolean> {
   try {
+    const r = await fetch(`${base()}/api/public/books/${bookId}/comments/${commentId}`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ device_id: deviceId, body: body.slice(0, 1000) }),
+    });
+    const d = (await r.json().catch(() => null)) as { ok?: boolean } | null;
+    return Boolean(d?.ok);
+  } catch {
+    return false;
+  }
+}
+
+export async function trackView(bookId: string, deviceId: string): Promise<void> {
+  try {
+    await fetch(`${base()}/api/public/events`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ device_id: deviceId, book_id: bookId, event_type: "view" }),
+    });
+  } catch {}
+}
+
+export async function deleteComment(bookId: string, commentId: string, deviceId: string): Promise<boolean> {
+  try {
+    const r = await fetch(`${base()}/api/public/books/${bookId}/comments/${commentId}`, {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ device_id: deviceId }),
+    });
+    const d = (await r.json().catch(() => null)) as { ok?: boolean } | null;
+    return Boolean(d?.ok);
+  } catch {
+    return false;
+  }
+}
+
+export async function setLike(bookId: string, deviceId: string, value: boolean): Promise<number> {  try {
     const r = await fetch(`${base()}/api/public/books/${bookId}/like`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ device_id: deviceId, value }),
     });
-    const d = (await r.json().catch(() => null)) as { likes?: number } | null;
-    return typeof d?.likes === "number" ? d.likes : -1;
+    const d = (await r.json().catch(() => null)) as { likes?: number | string } | null;
+    const n = typeof d?.likes === "number" ? d.likes : parseInt(String(d?.likes ?? ""), 10);
+    return Number.isFinite(n) ? n : -1;
   } catch {
     return -1;
   }
@@ -356,7 +405,7 @@ export async function fetchStoryDetail(token: string, storyId: string) {
 export async function updateStory(
   token: string,
   storyId: string,
-  input: { title?: string; description?: string; category?: string; cover_url?: string }
+  input: { title?: string; description?: string; category?: string; cover_url?: string; visible_on?: VisibleOn }
 ) {
   return callApi<{ ok: boolean } | { error: string }>(
     `/api/writer/stories/${storyId}`,
@@ -386,13 +435,21 @@ export async function updateWriterProfile(
 
 export async function createStory(
   token: string,
-  input: { title: string; description: string; category: string; cover_url?: string }
+  input: { title: string; description: string; category: string; cover_url?: string; visible_on?: VisibleOn }
 ) {
   return callApi<{ id: string; title: string; status: string } & Record<string, unknown>>("/api/writer/stories", {
     method: "POST",
     headers: authHeaders(token),
-    body: JSON.stringify({ title: input.title, description: input.description, category: input.category, cover_url: input.cover_url || null }),
+    body: JSON.stringify({ title: input.title, description: input.description, category: input.category, cover_url: input.cover_url || null, visible_on: input.visible_on || "both" }),
   });
+}
+
+export async function createCategory(token: string, name: string) {
+  return callApi<{ id: string; name: string } | { error: string }>(
+    "/api/writer/categories",
+    { method: "POST", headers: authHeaders(token), body: JSON.stringify({ name }) },
+    15000
+  );
 }
 
 export async function createChapter(token: string, storyId: string, input: { title: string; body: string }) {

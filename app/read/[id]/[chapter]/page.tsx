@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import ReaderControls from "./ReaderControls";
 import ReadProgress from "./ReadProgress";
+import TrackView from "@/components/TrackView";
 import { getBook, displayAuthor } from "@/lib/api";
 import { dict } from "@/lib/dict";
 import { getLang } from "@/lib/lang-server";
@@ -50,6 +51,7 @@ export default async function ReaderPage({
 
   return (
     <div className="narrow">
+      <TrackView bookId={b.id} />
       <ReadProgress />
       <div style={{ marginTop: 24, marginBottom: 8 }}>
         <Link href={`/book/${b.id}`} style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)" }}>
@@ -60,7 +62,7 @@ export default async function ReaderPage({
           {t.chapterWord} {idx + 1} {t.ofWord} {chs.length} · ~{c.minutes || 5} {t.minRead}
         </div>
       </div>
-      <ReaderControls bookId={b.id} index={idx} total={chs.length} />
+      <ReaderControls bookId={b.id} bookTitle={b.title} index={idx} total={chs.length} />
       <article className="reader" style={{ marginTop: 20 }}>
         {paragraphs.length ? (
           paragraphs.map((p, i) => <p key={i}>{p}</p>)
@@ -68,8 +70,7 @@ export default async function ReaderPage({
           <p>{c.body}</p>
         )}
       </article>
-      <ReaderControls bookId={b.id} index={idx} total={chs.length} />
-      <div style={{ height: 24 }} />
+      <div style={{ height: 90 }} />
     </div>
   );
 }

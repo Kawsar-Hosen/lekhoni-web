@@ -24,6 +24,7 @@ export default function WriteForm() {
   const [doneStatus, setDoneStatus] = useState<"draft" | "pending" | "published">("draft");
   const [step, setStep] = useState(0);
   const [previewUrl, setPreviewUrl] = useState("");
+  const [vis, setVis] = useState<"both" | "website">("both");
 
   const steps = [t("stepInfo"), t("stepCover"), t("stepChapter"), t("stepReview")];
 
@@ -92,6 +93,7 @@ export default function WriteForm() {
         description: desc.trim(),
         category: cat,
         cover_url: coverUrl || undefined,
+        visible_on: vis,
       });
       if (!s.data || !("id" in s.data)) {
         setErr(t("authFailed"));
@@ -195,7 +197,7 @@ export default function WriteForm() {
           <label className="fld-lb">{t("storyDesc")}</label>
           <textarea className="textarea" value={desc} onChange={(e) => setDesc(e.target.value)} maxLength={500} style={{ marginBottom: 12 }} />
           <label className="fld-lb">{t("storyCategory")}</label>
-          <select className="input" value={cat} onChange={(e) => setCat(e.target.value)}>
+          <select className="input" value={cat} onChange={(e) => setCat(e.target.value)} style={{ marginBottom: 6 }}>
             <option value="">—</option>
             {cats.map((c) => (
               <option key={c.id} value={c.name}>
@@ -203,6 +205,29 @@ export default function WriteForm() {
               </option>
             ))}
           </select>
+          <p className="wiz-hint">
+            {t("catHint")}{" "}
+            <Link href="/categories/new" style={{ color: "var(--accent)", fontWeight: 700 }}>
+              {t("catMakeNew")}
+            </Link>
+          </p>
+          <label className="fld-lb">{t("visibilityLabel")}</label>
+          <div className="vis-pills">
+            <button
+              type="button"
+              className={vis === "both" ? "chip chip-on" : "chip"}
+              onClick={() => setVis("both")}
+            >
+              {t("visBoth")}
+            </button>
+            <button
+              type="button"
+              className={vis === "website" ? "chip chip-on" : "chip"}
+              onClick={() => setVis("website")}
+            >
+              {t("visWebsite")}
+            </button>
+          </div>
         </>
       )}
 

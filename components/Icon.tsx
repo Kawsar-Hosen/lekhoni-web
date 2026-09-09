@@ -21,7 +21,10 @@ export type IconName =
   | "edit"
   | "eyeOff"
   | "dots"
-  | "globe";
+  | "globe"
+  | "expand"
+  | "volume"
+  | "scroll";
 
 const PATHS: Record<IconName, ReactNode> = {
   sun: (
@@ -95,6 +98,23 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="9" />
       <path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9S14.5 18.4 12 21c-2.5-2.6-3.8-5.7-3.8-9S9.5 5.6 12 3z" />
+    </>
+  ),
+  expand: (
+    <>
+      <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5" />
+    </>
+  ),
+  volume: (
+    <>
+      <path d="M11 5L6 9H2v6h4l5 4z" />
+      <path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9.4 9.4 0 0 1 0 13" />
+    </>
+  ),
+  scroll: (
+    <>
+      <path d="M12 3v18M12 3l-4 4M12 3l4 4" />
+      <path d="M5 21h14" />
     </>
   ),
 };

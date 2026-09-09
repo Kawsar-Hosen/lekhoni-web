@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
 import { useCallback, useEffect, useState } from "react";
@@ -24,6 +25,7 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
   const [desc, setDesc] = useState("");
   const [cat, setCat] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [vis, setVis] = useState<"both" | "website">("both");
   const [msg, setMsg] = useState("");
   const [ok, setOk] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -40,6 +42,7 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
         setTitle(s.title || "");
         setDesc(s.description || "");
         setCat(s.category || "");
+        setVis((s as { visible_on?: string }).visible_on === "website" ? "website" : "both");
       }
     });
   }, [session, storyId]);
@@ -91,6 +94,7 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
         description: desc.trim(),
         category: cat,
         ...(coverUrl ? { cover_url: coverUrl } : {}),
+        visible_on: vis,
       });
       if (r.data && "ok" in r.data) {
         setOk(true);
@@ -149,11 +153,26 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
                 </option>
               ))}
             </select>
+            <p className="wiz-hint" style={{ marginTop: 6 }}>
+              {t("catHint")}{" "}
+              <Link href="/categories/new" style={{ color: "var(--accent)", fontWeight: 700 }}>
+                {t("catMakeNew")}
+              </Link>
+            </p>
           </div>
           <div style={{ flex: 1, minWidth: 160 }}>
             <label className="fld-lb">{t("storyCover")}</label>
             <input className="input" type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} />
           </div>
+        </div>
+        <label className="fld-lb" style={{ marginTop: 12 }}>{t("visibilityLabel")}</label>
+        <div className="vis-pills">
+          <button type="button" className={vis === "both" ? "chip chip-on" : "chip"} onClick={() => setVis("both")}>
+            {t("visBoth")}
+          </button>
+          <button type="button" className={vis === "website" ? "chip chip-on" : "chip"} onClick={() => setVis("website")}>
+            {t("visWebsite")}
+          </button>
         </div>
         {story?.cover_url && !file && (
           // eslint-disable-next-line @next/next/no-img-element

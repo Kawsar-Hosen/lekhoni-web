@@ -6,7 +6,8 @@ import AdSlot from "@/components/AdSlot";
 import Icon from "@/components/Icon";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import Comments from "@/components/Comments";
-import { FollowButton, LikeButton } from "@/components/Engage";
+import { LikeButton } from "@/components/Engage";
+import TrackView from "@/components/TrackView";
 import { fmtCount } from "@/components/BookCard";
 import { getBook, getBooks, getWriters, displayAuthor } from "@/lib/api";
 import { dict } from "@/lib/dict";
@@ -65,6 +66,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="wrap">
       <BookJsonLd book={book} />
+      <TrackView bookId={book.id} />
       <div className="detail">
         <div>
           {book.cover_url ? (
@@ -112,7 +114,6 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
               </Link>
             ) : null}
             <LikeButton bookId={book.id} initialLikes={book.likes} />
-            <FollowButton writerId={writer ? writer.id : null} writerName={displayAuthor(book)} />
           </div>
           {book.description && (
             <>

@@ -121,6 +121,9 @@ export default function DashboardClient() {
           <Icon name="edit" size={18} />
         </span>
         <h2>{t("dashboard")}</h2>
+        <Link href="/categories/new" className="dash-new">
+          + {t("newCategory")}
+        </Link>
         <Link href="/write" className="btn btn-premium dash-new-btn">
           + {t("newStory")}
         </Link>

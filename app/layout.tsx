@@ -29,7 +29,23 @@ export const metadata: Metadata = {
   },
 };
 
-// Runs before paint: applies saved/system theme without flash.
+// WebSite JSON-LD (sitelinks searchbox eligible).
+function WebsiteJsonLd() {
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Lekhoni Kahini",
+    alternateName: "লেখনী কাহিনী",
+    url: "https://www.xyteee.com/",
+    inLanguage: ["bn", "en"],
+    potentialAction: {
+      "@type": "SearchAction",
+      target: "https://www.xyteee.com/search?q={query}",
+      "query-input": "required name=query",
+    },
+  };
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />;
+}
 const themeInit = `(function(){try{var t=localStorage.getItem('lk-theme')||'system';var d=t==='system'?window.matchMedia('(prefers-color-scheme: dark)').matches:t==='dark';document.documentElement.dataset.theme=d?'dark':'light';document.documentElement.style.colorScheme=d?'dark':'light';}catch(e){}})();`;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -38,6 +54,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={lang} suppressHydrationWarning>
       <head>
         <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeInit }} />
+        <WebsiteJsonLd />
       </head>
       <body>
         <ThemeProvider>

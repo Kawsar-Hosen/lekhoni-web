@@ -6,11 +6,14 @@ import { getLang } from "@/lib/lang-server";
 
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
-  title: "Writers",
-  description: "Meet the writers of Lekhoni Kahini — follow your favourite authors.",
-  alternates: { canonical: "/writers" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  return {
+    title: "Writers",
+    description: dict[lang].metaDesc,
+    alternates: { canonical: "/writers" },
+  };
+}
 
 export default async function WritersPage() {
   const lang = await getLang();

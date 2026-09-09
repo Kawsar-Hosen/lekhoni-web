@@ -8,6 +8,7 @@ import VerifiedBadge from "@/components/VerifiedBadge";
 import Comments from "@/components/Comments";
 import { LikeButton } from "@/components/Engage";
 import TrackView from "@/components/TrackView";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { fmtCount } from "@/components/BookCard";
 import { getBook, getBooks, getWriters, displayAuthor } from "@/lib/api";
 import { dict } from "@/lib/dict";
@@ -66,6 +67,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="wrap">
       <BookJsonLd book={book} />
+      <Breadcrumbs trail={[{ name: "Home", url: "/" }, { name: t.books, url: "/books" }, { name: book.title, url: `/book/${book.id}` }]} />
       <TrackView bookId={book.id} />
       <div className="detail">
         <div>

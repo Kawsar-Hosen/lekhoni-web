@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import { dict, type DictKey } from "@/lib/dict";
 import { getLang } from "@/lib/lang-server";
 
-export const metadata: Metadata = {
-  title: "About",
-  description: "About Lekhoni Kahini — Bengali stories reading and writing platform.",
-  alternates: { canonical: "/about" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  return {
+    title: "About",
+    description: dict[lang].metaDesc,
+    alternates: { canonical: "/about" },
+  };
+}
 
 const NOTES: [DictKey, DictKey][] = [
   ["aboutF1T", "aboutF1D"],

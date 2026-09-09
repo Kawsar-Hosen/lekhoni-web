@@ -3,11 +3,14 @@ import SocialIcon, { type SocialName } from "@/components/SocialIcons";
 import { dict } from "@/lib/dict";
 import { getLang } from "@/lib/lang-server";
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description: "Contact Lekhoni Kahini support.",
-  alternates: { canonical: "/contact" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  return {
+    title: "Contact",
+    description: dict[lang].metaDesc,
+    alternates: { canonical: "/contact" },
+  };
+}
 
 export default async function ContactPage() {
   const lang = await getLang();

@@ -6,11 +6,14 @@ import { getLang } from "@/lib/lang-server";
 
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
-  title: "Categories",
-  description: "Browse Bengali books by category.",
-  alternates: { canonical: "/categories" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  return {
+    title: "Categories",
+    description: dict[lang].metaDesc,
+    alternates: { canonical: "/categories" },
+  };
+}
 
 export default async function CategoriesPage() {
   const lang = await getLang();

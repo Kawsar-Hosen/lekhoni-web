@@ -6,11 +6,14 @@ import { getLang } from "@/lib/lang-server";
 
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
-  title: "All books",
-  description: "Browse all Bengali books — filter by category, sort by newest or most popular.",
-  alternates: { canonical: "/books" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  return {
+    title: "All books",
+    description: dict[lang].metaDesc,
+    alternates: { canonical: "/books" },
+  };
+}
 
 export default async function BooksPage({
   searchParams,

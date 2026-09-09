@@ -9,11 +9,14 @@ import { getBooks, getCategories, getWriters, isNewBook, isPopularBook, bookView
 
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
-  title: "Lekhoni Kahini — Bengali stories, novels & poems",
-  description: "Read Bengali books online — new episodes, timeless novels, and fresh voices.",
-  alternates: { canonical: "/" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  return {
+    title: "Lekhoni Kahini — Bengali stories, novels & poems",
+    description: dict[lang].metaDesc,
+    alternates: { canonical: "/" },
+  };
+}
 
 function SectionHead({ title, href, more }: { title: string; href: string; more: string }) {
   return (

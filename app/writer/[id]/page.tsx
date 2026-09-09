@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import BookCard, { fmtCount } from "@/components/BookCard";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { FollowButton } from "@/components/Engage";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { getWriter, getWriters, getBooks } from "@/lib/api";
 import { dict } from "@/lib/dict";
 import { getLang } from "@/lib/lang-server";
@@ -47,6 +48,7 @@ export default async function WriterPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="wrap">
+      <Breadcrumbs trail={[{ name: "Home", url: "/" }, { name: t.writers, url: "/writers" }, { name: w.writer_name, url: `/writer/${w.id}` }]} />
       <div
         className="card wmag-head"
         style={mine[0]?.cover_url ? { backgroundImage: `url(${mine[0].cover_url})` } : undefined}

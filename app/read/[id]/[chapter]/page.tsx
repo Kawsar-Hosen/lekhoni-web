@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import ReaderControls from "./ReaderControls";
 import ReadProgress from "./ReadProgress";
 import TrackView from "@/components/TrackView";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { getBook, displayAuthor } from "@/lib/api";
 import { dict } from "@/lib/dict";
 import { getLang } from "@/lib/lang-server";
@@ -51,6 +52,7 @@ export default async function ReaderPage({
 
   return (
     <div className="narrow">
+      <Breadcrumbs trail={[{ name: "Home", url: "/" }, { name: b.title, url: `/book/${b.id}` }, { name: c.title, url: `/read/${id}/${idx}` }]} />
       <TrackView bookId={b.id} />
       <ReadProgress />
       <div style={{ marginTop: 24, marginBottom: 8 }}>

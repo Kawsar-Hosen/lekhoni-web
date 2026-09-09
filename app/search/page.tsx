@@ -3,11 +3,14 @@ import SearchClient from "./SearchClient";
 import { dict } from "@/lib/dict";
 import { getLang } from "@/lib/lang-server";
 
-export const metadata: Metadata = {
-  title: "Search",
-  description: "Search Bengali books, writers and categories.",
-  alternates: { canonical: "/search" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLang();
+  return {
+    title: "Search",
+    description: dict[lang].metaDesc,
+    alternates: { canonical: "/search" },
+  };
+}
 
 export default async function SearchPage({
   searchParams,

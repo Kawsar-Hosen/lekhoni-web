@@ -7,7 +7,7 @@ export const API_BASE = 'https://lekhoni-admin-api.smdkawsar2.workers.dev';
 const base = () => (typeof window === "undefined" ? API_BASE : "/backend");
 
 export const REVALIDATE_HOME = 300; // 5m
-export const REVALIDATE_BOOK = 600; // 10m
+export const REVALIDATE_BOOK = 120; // 2m — new chapters appear fast
 export const REVALIDATE_LIST = 300;
 
 export type ApiBook = {
@@ -409,7 +409,7 @@ export async function updateStory(
 ) {
   return callApi<{ ok: boolean } | { error: string }>(
     `/api/writer/stories/${storyId}`,
-    { method: "PUT", headers: authHeaders(token), body: JSON.stringify(input) },
+    { method: "PUT", headers: authHeaders(token), body: JSON.stringify({ ...input, hide_title_on_cover: true }) },
     15000
   );
 }
@@ -440,7 +440,7 @@ export async function createStory(
   return callApi<{ id: string; title: string; status: string } & Record<string, unknown>>("/api/writer/stories", {
     method: "POST",
     headers: authHeaders(token),
-    body: JSON.stringify({ title: input.title, description: input.description, category: input.category, cover_url: input.cover_url || null, visible_on: input.visible_on || "both" }),
+    body: JSON.stringify({ title: input.title, description: input.description, category: input.category, cover_url: input.cover_url || null, visible_on: input.visible_on || "both", hide_title_on_cover: true }),
   });
 }
 

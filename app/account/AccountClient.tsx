@@ -29,11 +29,17 @@ export default function AccountClient() {
       return;
     }
     let on = true;
-    fetchMyStories(session.token).then((r) => {
-      if (on && r.data) setStories(r.data);
-    });
+    const load = () => {
+      if (!session) return;
+      fetchMyStories(session.token).then((r) => {
+        if (on && r.data) setStories(r.data);
+      });
+    };
+    load();
+    window.addEventListener("focus", load);
     return () => {
       on = false;
+      window.removeEventListener("focus", load);
     };
   }, [ready, session, router]);
 

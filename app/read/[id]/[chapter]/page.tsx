@@ -5,6 +5,7 @@ import ReaderControls from "./ReaderControls";
 import ReadProgress from "./ReadProgress";
 import TrackView from "@/components/TrackView";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import RichText from "@/components/RichText";
 import { getBook, displayAuthor } from "@/lib/api";
 import { dict } from "@/lib/dict";
 import { getLang } from "@/lib/lang-server";
@@ -48,8 +49,6 @@ export default async function ReaderPage({
   const c = chs[idx];
   if (!c) notFound();
 
-  const paragraphs = c.body.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
-
   return (
     <div className="narrow">
       <Breadcrumbs trail={[{ name: "Home", url: "/" }, { name: b.title, url: `/book/${b.id}` }, { name: c.title, url: `/read/${id}/${idx}` }]} />
@@ -61,16 +60,14 @@ export default async function ReaderPage({
         </Link>
         <h1 style={{ margin: "6px 0 2px", fontSize: 24 }}>{c.title}</h1>
         <div style={{ fontSize: 12, color: "var(--muted)" }}>
-          {t.chapterWord} {idx + 1} {t.ofWord} {chs.length} · ~{c.minutes || 5} {t.minRead}
+          {chs.length > 1
+            ? `${t.chapterWord} ${idx + 1} ${t.ofWord} ${chs.length} · ~${c.minutes || 5} ${t.minRead}`
+            : `~${c.minutes || 5} ${t.minRead}`}
         </div>
       </div>
       <ReaderControls bookId={b.id} bookTitle={b.title} index={idx} total={chs.length} />
       <article className="reader" style={{ marginTop: 20 }}>
-        {paragraphs.length ? (
-          paragraphs.map((p, i) => <p key={i}>{p}</p>)
-        ) : (
-          <p>{c.body}</p>
-        )}
+        <RichText body={c.body} />
       </article>
       <div style={{ height: 90 }} />
     </div>

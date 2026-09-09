@@ -134,7 +134,7 @@ export default async function HomePage() {
             aria-label="Google Play"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/google-play-badge.png" alt="Get it on Google Play" height={80} />
+            <img src="/google-play-badge.png" alt="Get it on Google Play" height={60} />
           </a>
         </div>
       </section>

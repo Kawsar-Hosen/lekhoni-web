@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import EditorToolbar from "@/components/EditorToolbar";
 import {
   fetchStoryDetail,
   updateStory,
@@ -32,6 +33,7 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
   const [chTitle, setChTitle] = useState("");
   const [chBody, setChBody] = useState("");
   const [chMsg, setChMsg] = useState("");
+  const chBodyRef = useRef<HTMLTextAreaElement | null>(null);
 
   const load = useCallback(() => {
     if (!session) return;
@@ -78,6 +80,13 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
     setBusy(true);
     setMsg("");
     try {
+      const wcount = title.trim().split(/\s+/).filter(Boolean).length;
+      if (wcount > 50) {
+        setOk(false);
+        setMsg(t("titleMaxW"));
+        setBusy(false);
+        return;
+      }
       let coverUrl: string | undefined;
       if (file) {
         const up = await uploadCover(file);
@@ -118,6 +127,10 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
       setChMsg(t("requiredFields"));
       return;
     }
+    if (chBody.trim().length < 500) {
+      setChMsg(t("chMinLen"));
+      return;
+    }
     setBusy(true);
     setChMsg("");
     const r = await addStoryChapter(session.token, storyId, { title: chTitle.trim(), body: chBody.trim() });
@@ -139,9 +152,9 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
       </div>
       <div className="card" style={{ padding: 20, marginBottom: 16 }}>
         <label className="fld-lb">{t("storyTitle")}</label>
-        <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={60} style={{ marginBottom: 12 }} />
+        <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={300} style={{ marginBottom: 12 }} />
         <label className="fld-lb">{t("storyDesc")}</label>
-        <textarea className="textarea" value={desc} onChange={(e) => setDesc(e.target.value)} maxLength={500} style={{ marginBottom: 12 }} />
+        <textarea className="textarea" value={desc} onChange={(e) => setDesc(e.target.value)} maxLength={150} style={{ marginBottom: 12 }} />
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 160 }}>
             <label className="fld-lb">{t("storyCategory")}</label>
@@ -209,7 +222,9 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
           placeholder={t("chapterTitlePh")}
           style={{ marginBottom: 8 }}
         />
+        <EditorToolbar value={chBody} onChange={setChBody} textAreaRef={chBodyRef} />
         <textarea
+          ref={chBodyRef}
           className="textarea"
           value={chBody}
           onChange={(e) => setChBody(e.target.value)}

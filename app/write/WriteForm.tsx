@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createStory, createChapter, uploadCover, getCategories, submitStoryForReview, type ApiCategory } from "@/lib/api";
+import EditorToolbar from "@/components/EditorToolbar";
+import RichText from "@/components/RichText";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
 
@@ -24,7 +26,46 @@ export default function WriteForm() {
   const [doneStatus, setDoneStatus] = useState<"draft" | "pending" | "published">("draft");
   const [step, setStep] = useState(0);
   const [previewUrl, setPreviewUrl] = useState("");
+  const chBodyRef = useRef<HTMLTextAreaElement | null>(null);
   const [vis, setVis] = useState<"both" | "website">("both");
+  const [stype, setStype] = useState<"episodes" | "complete">("episodes");
+  const [restored, setRestored] = useState(false);
+
+  const DRAFT_KEY = "lk-write-draft";
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(DRAFT_KEY);
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (typeof d.title === "string") setTitle(d.title);
+        if (typeof d.desc === "string") setDesc(d.desc);
+        if (typeof d.cat === "string") setCat(d.cat);
+        if (typeof d.chTitle === "string") setChTitle(d.chTitle);
+        if (typeof d.chBody === "string") setChBody(d.chBody);
+        if (d.vis === "website" || d.vis === "both") setVis(d.vis);
+        if (d.stype === "complete" || d.stype === "episodes") setStype(d.stype);
+        if (typeof d.step === "number") setStep(Math.min(Math.max(d.step, 0), 3));
+      }
+    } catch {}
+    setRestored(true);
+  }, []);
+
+  useEffect(() => {
+    if (!restored) return;
+    try {
+      window.localStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({ title, desc, cat, chTitle, chBody, vis, stype, step })
+      );
+    } catch {}
+  }, [title, desc, cat, chTitle, chBody, vis, stype, step, restored]);
+
+  const clearDraft = () => {
+    try {
+      window.localStorage.removeItem(DRAFT_KEY);
+    } catch {}
+  };
 
   const steps = [t("stepInfo"), t("stepCover"), t("stepChapter"), t("stepReview")];
 
@@ -34,18 +75,28 @@ export default function WriteForm() {
     setPreviewUrl(f ? URL.createObjectURL(f) : "");
   };
 
+  const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
+
   const next = () => {
     setErr("");
     if (step === 0 && !title.trim()) {
       setErr(t("requiredFields"));
       return;
     }
+    if (step === 0 && words(title) > 50) {
+      setErr(t("titleMaxW"));
+      return;
+    }
     if (step === 1 && !file) {
       setErr(t("coverRequired"));
       return;
     }
-    if (step === 2 && (!chTitle.trim() || !chBody.trim())) {
+    if (step === 2 && ((stype === "episodes" && !chTitle.trim()) || !chBody.trim())) {
       setErr(t("requiredFields"));
+      return;
+    }
+    if (step === 2 && chBody.trim().length < 500) {
+      setErr(t("chMinLen"));
       return;
     }
     setStep((s) => Math.min(s + 1, 3));
@@ -71,8 +122,17 @@ export default function WriteForm() {
   }
 
   const submit = async () => {
-    if (!title.trim() || !chTitle.trim() || !chBody.trim() || busy) {
+    const finalChTitle = stype === "complete" ? title.trim() : chTitle.trim();
+    if (!title.trim() || !finalChTitle || !chBody.trim() || busy) {
       setErr(t("requiredFields"));
+      return;
+    }
+    if (words(title) > 50) {
+      setErr(t("titleMaxW"));
+      return;
+    }
+    if (chBody.trim().length < 500) {
+      setErr(t("chMinLen"));
       return;
     }
     setBusy(true);
@@ -101,13 +161,14 @@ export default function WriteForm() {
         return;
       }
       const storyId = (s.data as { id: string }).id;
-      const ch = await createChapter(session.token, storyId, { title: chTitle.trim(), body: chBody.trim() });
+      const ch = await createChapter(session.token, storyId, { title: finalChTitle, body: chBody.trim() });
       if (!ch.data) {
         setErr(t("authFailed"));
         setBusy(false);
         return;
       }
       setDoneId(storyId);
+      clearDraft();
     } catch {
       setErr(t("authFailed"));
     }
@@ -162,6 +223,7 @@ export default function WriteForm() {
                 setChTitle("");
                 setChBody("");
                 setFile(null);
+                clearDraft();
                 if (previewUrl) URL.revokeObjectURL(previewUrl);
                 setPreviewUrl("");
                 setStep(0);
@@ -193,9 +255,9 @@ export default function WriteForm() {
       {step === 0 && (
         <>
           <label className="fld-lb">{t("storyTitle")}</label>
-          <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={60} style={{ marginBottom: 12 }} />
+          <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={300} style={{ marginBottom: 12 }} />
           <label className="fld-lb">{t("storyDesc")}</label>
-          <textarea className="textarea" value={desc} onChange={(e) => setDesc(e.target.value)} maxLength={500} style={{ marginBottom: 12 }} />
+          <textarea className="textarea" value={desc} onChange={(e) => setDesc(e.target.value)} maxLength={150} style={{ marginBottom: 12 }} />
           <label className="fld-lb">{t("storyCategory")}</label>
           <select className="input" value={cat} onChange={(e) => setCat(e.target.value)} style={{ marginBottom: 6 }}>
             <option value="">—</option>
@@ -211,6 +273,23 @@ export default function WriteForm() {
               {t("catMakeNew")}
             </Link>
           </p>
+          <label className="fld-lb">{t("storyType")}</label>
+          <div className="vis-pills" style={{ marginBottom: 12 }}>
+            <button
+              type="button"
+              className={stype === "episodes" ? "chip chip-on" : "chip"}
+              onClick={() => setStype("episodes")}
+            >
+              {t("typeEpisodes")}
+            </button>
+            <button
+              type="button"
+              className={stype === "complete" ? "chip chip-on" : "chip"}
+              onClick={() => setStype("complete")}
+            >
+              {t("typeComplete")}
+            </button>
+          </div>
           <label className="fld-lb">{t("visibilityLabel")}</label>
           <div className="vis-pills">
             <button
@@ -244,9 +323,14 @@ export default function WriteForm() {
 
       {step === 2 && (
         <>
-          <label className="fld-lb">{t("storyTitle")}</label>
-          <input className="input" value={chTitle} onChange={(e) => setChTitle(e.target.value)} placeholder={t("chapterTitlePh")} style={{ marginBottom: 8 }} />
-          <textarea className="textarea" value={chBody} onChange={(e) => setChBody(e.target.value)} placeholder={t("chapterBodyPh")} style={{ minHeight: 220 }} />
+          {stype === "episodes" && (
+            <>
+              <label className="fld-lb">{t("storyTitle")}</label>
+              <input className="input" value={chTitle} onChange={(e) => setChTitle(e.target.value)} placeholder={t("chapterTitlePh")} style={{ marginBottom: 8 }} />
+            </>
+          )}
+          <EditorToolbar value={chBody} onChange={setChBody} textAreaRef={chBodyRef} />
+          <textarea ref={chBodyRef} className="textarea" value={chBody} onChange={(e) => setChBody(e.target.value)} placeholder={t("chapterBodyPh")} style={{ minHeight: 220 }} />
         </>
       )}
 
@@ -261,10 +345,16 @@ export default function WriteForm() {
             <div>
               <strong className="wiz-review-title">{title || "—"}</strong>
               <div className="wiz-review-meta">
-                {cat || "—"} · {chTitle || "—"}
+                {cat || "—"} · {stype === "complete" ? title.trim() || "—" : chTitle || "—"}
               </div>
               <p className="wiz-review-desc">{desc || "—"}</p>
             </div>
+          </div>
+          <h3 className="wiz-preview-h">{stype === "complete" ? title.trim() || "—" : chTitle || "—"}</h3>
+          <div className="card wiz-preview-body">
+            <article className="reader">
+              <RichText body={chBody || "—"} />
+            </article>
           </div>
         </>
       )}

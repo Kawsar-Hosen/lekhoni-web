@@ -75,6 +75,9 @@ export default function GoogleButton() {
           window.google.accounts.id.renderButton(btnRef.current, {
             theme: document.documentElement.dataset.theme === "dark" ? "filled_black" : "outline",
             size: "large",
+            text: "continue_with",
+            shape: "rectangular",
+            logo_alignment: "left",
             width: 320,
             locale: lang === "bn" ? "bn" : "en",
           });

@@ -63,72 +63,89 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
   );
   const chs = book.chapters || [];
   const isPdf = Boolean(book.pdf_url);
+  const isSingle = !isPdf && chs.length === 1;
 
   return (
     <div className="wrap">
       <BookJsonLd book={book} />
       <Breadcrumbs trail={[{ name: "Home", url: "/" }, { name: t.books, url: "/books" }, { name: book.title, url: `/book/${book.id}` }]} />
       <TrackView bookId={book.id} />
-      <div className="detail">
-        <div>
-          {book.cover_url ? (
-            <Image
-              src={book.cover_url}
-              alt={book.title}
-              width={440}
-              height={660}
-              className="cover"
-              priority
-              sizes="(max-width: 640px) 180px, 220px"
-            />
-          ) : null}
-        </div>
-        <div>
-          {book.category && (
-            <Link href={`/books?category=${encodeURIComponent(book.category)}`} className="pill">
-              {book.category}
-            </Link>
-          )}
-          <h1 style={{ margin: "10px 0 4px", fontSize: 28 }}>{book.title}</h1>
-          <div style={{ color: "var(--muted)", fontSize: 14, display: "flex", alignItems: "center", gap: 5 }}>
-            {writer ? <Link href={`/writer/${writer.id}`} style={{ fontWeight: 700 }}>{displayAuthor(book)}</Link> : displayAuthor(book)}
-            {writer && <VerifiedBadge badge={writer.badge} size={15} />}
-          </div>
-          {book.dedication && (
-            <div style={{ fontSize: 13, fontStyle: "italic", color: "var(--muted)", marginTop: 6 }}>
-              {book.dedication}
+      <div className="card book-hero">
+        <div className="book-hero-side">
+          {book.cover_url && (
+            <div className="book-hero-cover-s">
+              <Image
+                src={book.cover_url}
+                alt={book.title}
+                width={440}
+                height={660}
+                className="cover"
+                priority
+                sizes="(max-width: 640px) 120px, 150px"
+              />
             </div>
           )}
-          <div className="meta-row">
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="eye" size={13} /> {fmtCount(book.views)} {t.views}</span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="heart" size={13} /> {fmtCount(book.likes)} {t.likes}</span>
-            {!isPdf && <span>{chs.length} {t.chapters}</span>}
-            {isPdf && <span>{t.pdfBook}</span>}
+          <div className="book-hero-info-s">
+            <h1 className="book-hero-title">{book.title}</h1>
+            <div className="book-hero-author">
+              <span className="author-chip">
+                {writer?.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={writer.avatar_url} alt={displayAuthor(book)} className="book-hero-ava" />
+                ) : (
+                  <span className="book-hero-ava-fb">{displayAuthor(book)[0]?.toUpperCase()}</span>
+                )}
+                {writer ? <Link href={`/writer/${writer.id}`} style={{ fontWeight: 700 }}>{displayAuthor(book)}</Link> : displayAuthor(book)}
+                {writer && <VerifiedBadge badge={writer.badge} size={15} />}
+              </span>
+            </div>
+            <div className="book-hero-tags">
+              {book.category && (
+                <Link href={`/books?category=${encodeURIComponent(book.category)}`} className="pill">
+                  {book.category}
+                </Link>
+              )}
+            {!isPdf && (
+              <span className={`type-badge ${isSingle ? "t-complete" : "t-eps"}`}>{isSingle ? t.typeComplete : `${chs.length} ${t.episodes}`}</span>
+            )}
+            {isPdf && <span className="type-badge t-pdf">{t.pdfBook}</span>}
+            </div>
+            {book.dedication && (
+              <div className="book-hero-ded">
+                {book.dedication}
+              </div>
+            )}
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
-            {isPdf ? (
-              <Link className="btn" href={book.pdf_url as string} target="_blank" rel="noreferrer">
-                {t.openPdf}
-              </Link>
-            ) : chs.length ? (
-              <Link className="btn" href={`/read/${book.id}/0`}>
-                {t.startReading}
-              </Link>
-            ) : null}
-            <LikeButton bookId={book.id} initialLikes={book.likes} />
-          </div>
-          {book.description && (
-            <>
-              <h2 style={{ fontSize: 17, marginTop: 24 }}>{t.description}</h2>
-              <p style={{ color: "var(--ink)", fontSize: 15 }}>{book.description}</p>
-            </>
-          )}
         </div>
+        <div className="book-hero-meta">
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="eye" size={13} /> {fmtCount(book.views)} {t.views}</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="heart" size={13} /> {fmtCount(book.likes)} {t.likes}</span>
+          {!isPdf && !isSingle && <span>{chs.length} {t.chapters}</span>}
+          {isPdf && <span>{t.pdfBook}</span>}
+        </div>
+        <div className="book-hero-actions">
+          {isPdf ? (
+            <Link className="btn" href={book.pdf_url as string} target="_blank" rel="noreferrer">
+              {t.openPdf}
+            </Link>
+          ) : chs.length ? (
+            <Link className="btn btn-premium" href={`/read/${book.id}/0`}>
+              {isSingle ? t.readNow : t.startReading}
+            </Link>
+          ) : null}
+          <LikeButton bookId={book.id} initialLikes={book.likes} />
+        </div>
+        {book.description && (
+          <>
+            <h2 className="book-hero-desc-h">{t.description}</h2>
+            <p className="book-hero-desc">{book.description}</p>
+          </>
+        )}
       </div>
 
       <AdSlot slot="book-detail" />
 
-      {!isPdf && chs.length > 0 && (
+      {!isPdf && !isSingle && chs.length > 0 && (
         <section className="section narrow" style={{ marginLeft: 0 }}>
           <div className="section-head">
             <h2>{t.chapters} ({chs.length})</h2>

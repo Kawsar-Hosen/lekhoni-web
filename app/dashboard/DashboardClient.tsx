@@ -36,15 +36,21 @@ export default function DashboardClient() {
       return;
     }
     let on = true;
-    Promise.all([fetchMyStories(session.token), fetchWriterDashboard(session.token), getBooks()]).then(([st, db, bk]) => {
-      if (!on) return;
-      if (st.data) setStories(st.data);
-      if (db.data && "stories" in db.data) setDash(db.data);
-      if (bk) setBooks(bk);
-      setLoaded(true);
-    });
+    const load = () => {
+      if (!session) return;
+      Promise.all([fetchMyStories(session.token), fetchWriterDashboard(session.token), getBooks()]).then(([st, db, bk]) => {
+        if (!on) return;
+        if (st.data) setStories(st.data);
+        if (db.data && "stories" in db.data) setDash(db.data);
+        if (bk) setBooks(bk);
+        setLoaded(true);
+      });
+    };
+    load();
+    window.addEventListener("focus", load);
     return () => {
       on = false;
+      window.removeEventListener("focus", load);
     };
   }, [ready, session, router]);
 

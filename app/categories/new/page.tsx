@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "New category",
   description: "Create a website-only category.",
   alternates: { canonical: "/categories/new" },
+  robots: { index: false, follow: false },
 };
 
 export default async function NewCategoryPage() {

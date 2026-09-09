@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Write a Story",
   description: "Write and publish a new story on Lekhoni Kahini.",
   alternates: { canonical: "/write" },
+  robots: { index: false, follow: false },
 };
 
 export default async function WritePage() {

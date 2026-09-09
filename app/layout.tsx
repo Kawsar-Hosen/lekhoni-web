@@ -9,7 +9,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://lekhoni-web.pages.dev"),
+  metadataBase: new URL("https://www.xyteee.com"),
   title: {
     default: "Lekhoni Kahini — Bengali stories, novels & poems",
     template: "%s · Lekhoni Kahini",
@@ -19,6 +19,13 @@ export const metadata: Metadata = {
     siteName: "Lekhoni Kahini",
     type: "website",
     locale: "en_US",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Lekhoni Kahini" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lekhoni Kahini — Bengali stories, novels & poems",
+    description: "Read Bengali books online — new episodes, timeless novels, and fresh voices.",
+    images: ["/og.png"],
   },
 };
 

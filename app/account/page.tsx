@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "My account",
   description: "Your Lekhoni Kahini writer account.",
   alternates: { canonical: "/account" },
+  robots: { index: false, follow: false },
 };
 
 export default function AccountPage() {

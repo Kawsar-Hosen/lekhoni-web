@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Sign up",
   description: "Create a Lekhoni Kahini writer account.",
   alternates: { canonical: "/register" },
+  robots: { index: false, follow: false },
 };
 
 const POINTS: DictKey[] = ["regP1", "regP2", "regP3"];

@@ -13,11 +13,8 @@ export default async function ContactPage() {
   const lang = await getLang();
   const t = dict[lang];
   const socials: { name: SocialName; label: string; sub: string; href: string }[] = [
-    { name: "facebook", label: "Facebook", sub: "kO.tE.kAwsAr", href: "https://www.facebook.com/kO.tE.kAwsAr?mibextid=ZbWKwL" },
-    { name: "linkedin", label: "LinkedIn", sub: "Kawsar Hosen", href: "https://www.linkedin.com/in/kawsar-hosen?utm_source=share_via&utm_content=profile&utm_medium=member_android" },
-    { name: "whatsapp", label: "WhatsApp", sub: "+880 1703-169708", href: "https://wa.me/8801703169708" },
+    { name: "whatsapp", label: "WhatsApp", sub: "+880 1926-890544", href: "https://wa.me/8801926890544" },
     { name: "telegram", label: "Telegram", sub: "@xyteee", href: "https://t.me/xyteee" },
-    { name: "x", label: "X", sub: "@kawsarhosen143", href: "https://x.com/kawsarhosen143" },
   ];
   return (
     <div className="narrow">

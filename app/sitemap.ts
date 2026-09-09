@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { getBooks, getWriters } from "@/lib/api";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = "https://lekhoni-web.pages.dev";
+  const base = "https://www.xyteee.com";
   const [books, writers] = await Promise.all([getBooks(), getWriters()]);
   const staticRoutes = ["", "/books", "/writers", "/categories", "/search", "/about", "/contact", "/privacy", "/delete-request"].map(
     (r) => ({ url: `${base}${r || "/"}`, lastModified: new Date(), changeFrequency: "daily" as const, priority: r === "" ? 1 : 0.7 })

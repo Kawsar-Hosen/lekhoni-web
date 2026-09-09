@@ -54,6 +54,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={lang} suppressHydrationWarning>
       <head>
         <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeInit }} />
+        {/* Google AdSense ownership verification only — no ad units enabled. */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8665718760035175"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <WebsiteJsonLd />
       </head>
       <body>

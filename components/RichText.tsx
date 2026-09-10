@@ -12,8 +12,8 @@ function inline(s: string): string {
   return h;
 }
 
-export function renderRich(body: string): string {
-  const lines = body.split("\n");
+export function renderRich(body: string | null | undefined): string {
+  const lines = (body || "").split("\n");
   let html = "";
   let inList = false;
   const closeList = () => {
@@ -49,6 +49,6 @@ export function renderRich(body: string): string {
   return html;
 }
 
-export default function RichText({ body }: { body: string }) {
+export default function RichText({ body }: { body: string | null | undefined }) {
   return <div className="rich-body" dangerouslySetInnerHTML={{ __html: renderRich(body) }} />;
 }

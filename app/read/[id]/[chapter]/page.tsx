@@ -11,6 +11,7 @@ import { dict } from "@/lib/dict";
 import { getLang } from "@/lib/lang-server";
 
 export const revalidate = 1800;
+export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
   return [];

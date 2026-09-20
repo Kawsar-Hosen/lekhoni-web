@@ -8,7 +8,7 @@ import GoogleButton from "@/components/GoogleButton";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
 
-export default function RegisterForm({ verifyEmail = "" }: { verifyEmail?: string }) {
+export default function RegisterForm({ verifyEmail = "", initialRef = "" }: { verifyEmail?: string; initialRef?: string }) {
   const { t } = useLang();
   const { signIn } = useAuth();
   const router = useRouter();
@@ -17,6 +17,7 @@ export default function RegisterForm({ verifyEmail = "" }: { verifyEmail?: strin
   const [email, setEmail] = useState(verifyEmail);
   const [pw, setPw] = useState("");
   const [code, setCode] = useState("");
+  const [refCode, setRefCode] = useState(initialRef);
   const [step, setStep] = useState<"form" | "verify">(verifyEmail ? "verify" : "form");
   const [sentTo, setSentTo] = useState(verifyEmail);
   const [err, setErr] = useState("");
@@ -29,7 +30,7 @@ export default function RegisterForm({ verifyEmail = "" }: { verifyEmail?: strin
     }
     setBusy(true);
     setErr("");
-    const r = await writerSignup({ username: username.trim(), writerName: writerName.trim(), email: email.trim(), password: pw });
+    const r = await writerSignup({ username: username.trim(), writerName: writerName.trim(), email: email.trim(), password: pw, ref: refCode.trim() || undefined });
     setBusy(false);
     if (!r) {
       setErr(t("authFailed"));
@@ -85,12 +86,15 @@ export default function RegisterForm({ verifyEmail = "" }: { verifyEmail?: strin
           <label style={{ display: "block", fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{t("email")}</label>
           <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" style={{ marginBottom: 12 }} />
           <label style={{ display: "block", fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{t("password")}</label>
-          <input className="input" type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="new-password" style={{ marginBottom: 4 }} />
+          <input className="input" type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="new-password" style={{ marginBottom: 12 }} />
+          <label style={{ display: "block", fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{t("couponLbl")}</label>
+          <input className="input" value={refCode} onChange={(e) => setRefCode(e.target.value)} placeholder="name-xxxxx" autoComplete="off" style={{ marginBottom: 4 }} />
+          {initialRef ? <p style={{ fontSize: 12, color: "var(--accent)", fontWeight: 700 }}>{t("refApplied")}</p> : null}
           {err && <p style={{ color: "red", fontSize: 13, fontWeight: 700 }}>{err}</p>}
           <button className="btn" onClick={doSignup} disabled={busy} style={{ width: "100%", marginTop: 8 }}>
             {t("signUp")}
           </button>
-          <GoogleButton />
+          <GoogleButton referral={refCode.trim() || initialRef} />
           <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 12 }}>
             {t("haveAccount")}{" "}
             <Link href="/login" style={{ color: "var(--accent)", fontWeight: 700 }}>

@@ -31,34 +31,34 @@ export default function WritersFilter({ writers, bookCounts = {} }: { writers: A
         />
       </div>
       {list.length ? (
-        <div className="wrank-list">
-          {list.map((w, i) => (
-            <div key={w.id} className="card wrank-row">
-              <span className={`wrank-num${i < 3 ? ` top${i + 1}` : ""}`}>{i + 1}</span>
-              <Link href={`/writer/${w.id}`} className={`wrank-ava ring${i < 3 ? i + 1 : ""}`}>
-                {w.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={w.avatar_url} alt={w.writer_name} loading="lazy" />
-                ) : (
-                  <span className="avatar-fallback">{w.writer_name[0]?.toUpperCase()}</span>
-                )}
-              </Link>
-              <Link href={`/writer/${w.id}`} className="wrank-info">
-                <span className="wrank-name">
-                  {w.writer_name}
-                  <VerifiedBadge badge={w.badge} size={15} />
+        <div className="wall-grid">
+          {list.map((w) => (
+            <div key={w.id} className="card wall-card">
+              <Link href={`/writer/${w.id}`} className="wall-top">
+                <span className="wall-ava">
+                  {w.avatar_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={w.avatar_url} alt={w.writer_name} loading="lazy" />
+                  ) : (
+                    <span className="avatar-fallback">{w.writer_name[0]?.toUpperCase()}</span>
+                  )}
                 </span>
-                <span className="wrank-user">@{w.username}</span>
-                {w.bio ? <span className="wrank-bio">{w.bio}</span> : null}
+                <span className="wall-id">
+                  <span className="wall-name">
+                    {w.writer_name}
+                    <VerifiedBadge badge={w.badge} size={14} />
+                  </span>
+                  <span className="wrank-user">@{w.username}</span>
+                  {w.bio ? <span className="wrank-bio">{w.bio}</span> : null}
+                </span>
+              </Link>
+              <div className="wall-foot">
                 <span className="wrank-stats">
-                  {bookCounts[w.writer_name] ? `${bookCounts[w.writer_name]} ${t("books")}` : null}
-                  {bookCounts[w.writer_name] ? " · " : ""}
+                  {bookCounts[w.writer_name] ? `${bookCounts[w.writer_name]} ${t("books")} · ` : ""}
                   {fmtCount(w.follower_count || 0)} {t("followers")}
                 </span>
-              </Link>
-              <span className="wrank-act" onClick={(e) => e.stopPropagation()}>
                 <FollowButton writerId={w.id} writerName={w.writer_name} />
-              </span>
+              </div>
             </div>
           ))}
         </div>

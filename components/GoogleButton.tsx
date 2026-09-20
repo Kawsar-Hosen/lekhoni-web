@@ -24,7 +24,7 @@ declare global {
   }
 }
 
-export default function GoogleButton() {
+export default function GoogleButton({ referral }: { referral?: string }) {
   const { signIn } = useAuth();
   const { lang, t } = useLang();
   const router = useRouter();
@@ -59,7 +59,7 @@ export default function GoogleButton() {
                 setErr(t("authFailed"));
                 return;
               }
-              const r = await writerGoogleAuth(resp.credential);
+              const r = await writerGoogleAuth(resp.credential, referral || undefined);
               if (!r.data) {
                 setErr(t("authFailed"));
                 return;

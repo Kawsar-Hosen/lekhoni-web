@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, ReactNode, RefObject } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 function wrap(
   ta: HTMLTextAreaElement | null,
@@ -41,19 +41,22 @@ function linePrefix(
 export default function EditorToolbar({
   value,
   onChange,
-  textAreaRef,
+  el,
 }: {
   value: string;
   onChange: (v: string) => void;
-  textAreaRef: RefObject<HTMLTextAreaElement | null>;
+  el: HTMLTextAreaElement | null;
 }) {
   const btns: { label: ReactNode; title: string; fn: () => void; style?: CSSProperties }[] = [
-    { label: <b>B</b>, title: "Bold", fn: () => wrap(textAreaRef.current, "**", "**", onChange, value) },
-    { label: <i>I</i>, title: "Italic", fn: () => wrap(textAreaRef.current, "*", "*", onChange, value) },
-    { label: <mark>H</mark>, title: "Highlight", fn: () => wrap(textAreaRef.current, "==", "==", onChange, value) },
-    { label: "H2", title: "Heading", fn: () => linePrefix(textAreaRef.current, "## ", onChange, value) },
-    { label: "•", title: "List", fn: () => linePrefix(textAreaRef.current, "- ", onChange, value) },
-    { label: "❝", title: "Quote", fn: () => linePrefix(textAreaRef.current, "> ", onChange, value) },
+    { label: <b>B</b>, title: "Bold", fn: () => wrap(el, "**", "**", onChange, value) },
+    { label: <i>I</i>, title: "Italic", fn: () => wrap(el, "*", "*", onChange, value) },
+    { label: <mark>H</mark>, title: "Highlight", fn: () => wrap(el, "==", "==", onChange, value) },
+    { label: <s>S</s>, title: "Strikethrough", fn: () => wrap(el, "~~", "~~", onChange, value) },
+    { label: <code>{"<>"}</code>, title: "Code", fn: () => wrap(el, "`", "`", onChange, value) },
+    { label: "H2", title: "Heading", fn: () => linePrefix(el, "## ", onChange, value) },
+    { label: "•", title: "List", fn: () => linePrefix(el, "- ", onChange, value) },
+    { label: "❝", title: "Quote", fn: () => linePrefix(el, "> ", onChange, value) },
+    { label: "―", title: "Divider", fn: () => linePrefix(el, "---", onChange, value) },
   ];
   return (
     <div className="ed-tools">

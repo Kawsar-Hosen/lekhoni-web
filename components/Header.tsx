@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Icon from "./Icon";
+import HeaderSearch from "./HeaderSearch";
+import ShareMenu from "./ShareMenu";
 import { useLang, type DictKey } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { useTheme, type Theme } from "@/lib/theme";
@@ -22,12 +24,10 @@ export default function Header() {
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [langOpen, setLangOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const [acctOpen, setAcctOpen] = useState(false);
 
   const closeAll = () => {
-    setLangOpen(false);
     setThemeOpen(false);
     setAcctOpen(false);
   };
@@ -50,44 +50,8 @@ export default function Header() {
             </Link>
           ))}
         </nav>
-        <form className="header-search" action="/search" method="get" role="search">
-          <div className="box">
-            <input name="q" placeholder={t("searchPh")} aria-label={t("search")} autoComplete="off" />
-            <button type="submit" aria-label={t("search")}>
-              <Icon name="search" size={16} />
-            </button>
-          </div>
-        </form>
+        <HeaderSearch />
         <div className="header-right">
-          <div style={{ position: "relative" }}>
-            <button
-              className="icon-btn"
-              onClick={() => { closeAll(); setLangOpen((v) => !v); }}
-              title={t("language")}
-              aria-label={t("language")}
-              aria-expanded={langOpen}
-            >
-              <Icon name="globe" size={16} />
-            </button>
-            {langOpen && (
-              <>
-                <div
-                  onClick={closeAll}
-                  style={{ position: "fixed", inset: 0, zIndex: 60, cursor: "default" }}
-                  aria-hidden="true"
-                />
-                <div className="card acct-menu more-menu">
-                  <div className="menu-label">{t("language")}</div>
-                  <button className={lang === "en" ? "menu-opt active" : "menu-opt"} onClick={() => { setLang("en"); closeAll(); window.location.reload(); }}>
-                    {t("langEnglish")} {lang === "en" && "✓"}
-                  </button>
-                  <button className={lang === "bn" ? "menu-opt active" : "menu-opt"} onClick={() => { setLang("bn"); closeAll(); window.location.reload(); }}>
-                    {t("langBangla")} {lang === "bn" && "✓"}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
           <div style={{ position: "relative" }}>
             <button
               className="icon-btn"
@@ -156,7 +120,7 @@ export default function Header() {
                       <Icon name="user" size={15} /> {t("signIn")}
                     </Link>
                     <Link href="/register" onClick={closeAll}>
-                      <Icon name="edit" size={15} /> {t("signUp")}
+                      <Icon name="userPlus" size={15} /> {t("signUp")}
                     </Link>
                   </div>
                 </>
@@ -172,14 +136,7 @@ export default function Header() {
           </button>
         </div>
       </div>
-      <form className="header-search-mobile" action="/search" method="get" role="search">
-        <div className="box">
-          <input name="q" placeholder={t("searchPh")} aria-label={t("search")} autoComplete="off" />
-          <button type="submit" aria-label={t("search")}>
-            <Icon name="search" size={16} />
-          </button>
-        </div>
-      </form>
+      <HeaderSearch mobile />
       {open && (
         <nav className="mobile-nav" aria-label="Mobile">
           {NAV.map((n) => (
@@ -190,6 +147,28 @@ export default function Header() {
           <Link href="/write" onClick={() => setOpen(false)}>
             {t("writeStory")}
           </Link>
+          <div className="mnav-lang">
+            <span className="mnav-lang-lb">
+              <Icon name="globe" size={15} /> {t("language")}
+            </span>
+            <button
+              className={`lang-switch${lang === "bn" ? " bn" : ""}`}
+              onClick={() => {
+                const next = lang === "en" ? "bn" : "en";
+                setLang(next);
+                setOpen(false);
+                window.location.reload();
+              }}
+              aria-label={t("language")}
+            >
+              <span className="lang-knob" />
+              <span className="lang-opt en">EN</span>
+              <span className="lang-opt bn">বাং</span>
+            </button>
+          </div>
+          <div className="mnav-share">
+            <ShareMenu onDone={() => setOpen(false)} />
+          </div>
         </nav>
       )}
     </header>

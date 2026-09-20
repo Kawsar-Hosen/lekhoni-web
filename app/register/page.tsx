@@ -16,7 +16,7 @@ const POINTS: DictKey[] = ["regP1", "regP2", "regP3"];
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ verify?: string }>;
+  searchParams: Promise<{ verify?: string; ref?: string }>;
 }) {
   const sp = await searchParams;
   const lang = await getLang();
@@ -41,7 +41,7 @@ export default async function RegisterPage({
           <div className="auth-form">
             <h2>{t.signUp}</h2>
             <p className="sub">{t.regSub}</p>
-            <RegisterForm verifyEmail={sp.verify || ""} />
+            <RegisterForm verifyEmail={sp.verify || ""} initialRef={sp.ref || ""} />
           </div>
         </div>
       </div>

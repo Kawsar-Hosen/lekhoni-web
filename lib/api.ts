@@ -24,6 +24,8 @@ export type ApiBook = {
   color?: string;
   accent?: string;
   visible_on?: string;
+  display_status?: string;
+  writer_status?: string;
   is_new?: boolean;
   featured?: boolean;
   pdf_url?: string;
@@ -200,12 +202,18 @@ export async function followWriter(deviceId: string, writerId: string): Promise<
   }
 }
 
-export async function writerGoogleAuth(credential: string) {
+export async function writerGoogleAuth(credential: string, ref?: string) {
   return callApi<{ writer: WriterSession; token: string } | { error: string }>(
     "/api/public/writers/google",
-    { method: "POST", headers: jsonHeaders, body: JSON.stringify({ credential }) },
+    { method: "POST", headers: jsonHeaders, body: JSON.stringify({ credential, ref: ref || undefined }) },
     15000
   );
+}
+
+export type ReferralInfo = { code: string; uses: number; earnings: number };
+
+export async function fetchReferral(token: string) {
+  return callApi<ReferralInfo>("/api/writer/referral", { headers: authHeaders(token) }, 15000);
 }
 
 export async function unfollowWriter(deviceId: string, writerId: string): Promise<boolean> {
@@ -287,11 +295,11 @@ type VerifyRes = WriterAuthOk | WriterAuthFail;
 type LoginRes = WriterAuthOk | { unverified: true; email: string } | WriterAuthFail;
 type SimpleRes = { ok: boolean; mail_sent?: boolean; retry_after?: number } | WriterAuthFail;
 
-export async function writerSignup(input: { username: string; writerName: string; email: string; password: string }): Promise<SignupRes | null> {
+export async function writerSignup(input: { username: string; writerName: string; email: string; password: string; ref?: string }): Promise<SignupRes | null> {
   const r = await callApi<SignupRes & { error?: string }>("/api/public/writers/signup", {
     method: "POST",
     headers: jsonHeaders,
-    body: JSON.stringify({ username: input.username, writer_name: input.writerName, email: input.email, password: input.password }),
+    body: JSON.stringify({ username: input.username, writer_name: input.writerName, email: input.email, password: input.password, ref: input.ref || undefined }),
   });
   return r.data;
 }
@@ -395,6 +403,9 @@ export type StoryDetail = {
   status: string;
   category?: string;
   cover_url?: string | null;
+  visible_on?: string;
+  writer_status?: string;
+  is_new?: boolean;
   chapters?: { id: string; title: string; body?: string; position: number }[];
 };
 
@@ -405,7 +416,7 @@ export async function fetchStoryDetail(token: string, storyId: string) {
 export async function updateStory(
   token: string,
   storyId: string,
-  input: { title?: string; description?: string; category?: string; cover_url?: string; visible_on?: VisibleOn }
+  input: { title?: string; description?: string; category?: string; cover_url?: string; visible_on?: VisibleOn; writer_status?: string; is_new?: boolean }
 ) {
   return callApi<{ ok: boolean } | { error: string }>(
     `/api/writer/stories/${storyId}`,

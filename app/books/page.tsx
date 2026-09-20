@@ -31,7 +31,7 @@ export default async function BooksPage({
         <div className="section-head">
           <h2>{t.books}</h2>
         </div>
-        <BooksFilter books={books} categories={categories} initialCategory={sp.category || ""} />
+        <BooksFilter key={sp.category || "all"} books={books} categories={categories} initialCategory={sp.category || ""} />
       </div>
     </div>
   );

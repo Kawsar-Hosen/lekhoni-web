@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import CoverImg from "@/components/CoverImg";
 import { displayAuthor, type ApiBook } from "@/lib/api";
 
 export function fmtCount(n: number | string): string {
@@ -17,13 +17,12 @@ export default function BookCard({ book }: { book: ApiBook }) {
   return (
     <Link href={`/book/${book.id}`} className="card book-card">
       {book.cover_url ? (
-        <Image
+        <CoverImg
           src={book.cover_url}
           alt={book.title}
           width={300}
           height={450}
           className="cover"
-          loading="lazy"
           sizes="(max-width: 640px) 33vw, (max-width: 900px) 25vw, 16vw"
         />
       ) : (

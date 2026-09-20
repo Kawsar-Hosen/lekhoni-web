@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import BookCard from "@/components/BookCard";
 import { bookViews, type ApiBook } from "@/lib/api";
@@ -13,11 +13,6 @@ export default function BooksFilter({ books, categories, initialCategory }: Prop
   const [cat, setCat] = useState(initialCategory);
   const [sort, setSort] = useState<"new" | "popular">("new");
   const [q, setQ] = useState("");
-
-  useEffect(() => {
-    setCat(initialCategory);
-    setQ("");
-  }, [initialCategory]);
 
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase();

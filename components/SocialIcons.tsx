@@ -1,5 +1,5 @@
 // Original brand icons (simple geometric paths, 24x24).
-export type SocialName = "facebook" | "linkedin" | "whatsapp" | "telegram" | "x";
+export type SocialName = "facebook" | "linkedin" | "whatsapp" | "telegram" | "x" | "messenger";
 
 const PATHS: Record<SocialName, string> = {
   facebook:
@@ -11,6 +11,8 @@ const PATHS: Record<SocialName, string> = {
   telegram:
     "M11.94 0A12 12 0 1 0 24 12 12 12 0 0 0 11.94 0zm5.89 8.14-2.47 11.68c-.18.83-.66 1.03-1.34.64l-3.7-2.73-1.79 1.72c-.2.2-.36.36-.74.36l.26-3.73 6.8-6.14c.3-.26-.06-.41-.46-.15l-8.4 5.29-3.62-1.13c-.79-.25-.8-.79.16-1.17l14.14-5.45c.66-.24 1.23.16 1.16 1.11z",
   x: "M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.21-6.82-5.97 6.82H1.67l7.73-8.84L1.25 2.25h6.83l4.71 6.23 5.45-6.23zm-1.16 17.52h1.83L7.08 4.13H5.12l11.96 15.64z",
+  messenger:
+    "M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.44 3.14 7.17.16.14.25.35.25.57l.05 1.78c.02.53.6.84 1.07.6l2.05-1.12c.15-.08.33-.12.5-.08 1.11.3 2.3.47 3.54.47h.04c5.64 0 10.2-4.13 10.2-9.4S17.64 2 12 2zm6.3 9.49-2.75 4.36c-.43.68-1.39.86-2.02.36l-2.5-1.87c-.3-.22-.71-.22-1.01 0l-3.55 2.68c-.49.37-1.13-.2-.79-.7l2.75-4.36c.43-.68 1.39-.86 2.02-.36l2.5 1.87c.3.22.71.22 1.01 0l3.55-2.68c.49-.37 1.13.2.79.7z",
 };
 
 export const SOCIAL_COLORS: Record<SocialName, string> = {
@@ -19,6 +21,7 @@ export const SOCIAL_COLORS: Record<SocialName, string> = {
   whatsapp: "#25D366",
   telegram: "#229ED9",
   x: "currentColor",
+  messenger: "#0084FF",
 };
 
 export default function SocialIcon({ name, size = 22 }: { name: SocialName; size?: number }) {

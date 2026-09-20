@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
 import { useEffect, useMemo, useState } from "react";
 import Icon from "@/components/Icon";
-import { fetchMyStories, fetchWriterDashboard, getBooks, submitStoryForReview, deleteStory, type ApiBook, type WriterDashboard, type WriterStory } from "@/lib/api";
+import { fetchMyStories, fetchWriterDashboard, fetchReferral, getBooks, submitStoryForReview, deleteStory, type ApiBook, type WriterDashboard, type WriterStory } from "@/lib/api";
 import { fmtCount } from "@/components/BookCard";
 
 export default function DashboardClient() {
@@ -16,6 +16,7 @@ export default function DashboardClient() {
   const [stories, setStories] = useState<WriterStory[]>([]);
   const [books, setBooks] = useState<ApiBook[]>([]);
   const [dash, setDash] = useState<WriterDashboard | null>(null);
+  const [refInfo, setRefInfo] = useState<{ uses: number; earnings: number } | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [submitting, setSubmitting] = useState("");
   const [deleting, setDeleting] = useState("");
@@ -38,11 +39,12 @@ export default function DashboardClient() {
     let on = true;
     const load = () => {
       if (!session) return;
-      Promise.all([fetchMyStories(session.token), fetchWriterDashboard(session.token), getBooks()]).then(([st, db, bk]) => {
+      Promise.all([fetchMyStories(session.token), fetchWriterDashboard(session.token), getBooks(), fetchReferral(session.token)]).then(([st, db, bk, rf]) => {
         if (!on) return;
         if (st.data) setStories(st.data);
         if (db.data && "stories" in db.data) setDash(db.data);
         if (bk) setBooks(bk);
+        if (rf.data && "uses" in rf.data) setRefInfo(rf.data);
         setLoaded(true);
       });
     };
@@ -166,6 +168,12 @@ export default function DashboardClient() {
                 <div className="dash-bal-l">{t("totalReads")}</div>
                 <div className="dash-bal-v">{fmtCount(views)}</div>
               </div>
+              {refInfo && (
+                <div>
+                  <div className="dash-bal-l">{t("refEarnings")} ({refInfo.uses})</div>
+                  <div className="dash-bal-v">৳{refInfo.earnings.toLocaleString("en-US")}</div>
+                </div>
+              )}
             </div>
             {!eligible && <p className="dash-unlock">{t("unlockMsg")}</p>}
           </div>

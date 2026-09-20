@@ -50,7 +50,7 @@ export default function Footer() {
             <Icon name="user" size={16} />
           )}
         </Link>
-        <span>© 2026 Lekhoni Kahini · lekhoni-kahini@xyteee.com</span>
+        <span>© 2026 Lekhoni Kahini</span>
       </div>
     </footer>
   );

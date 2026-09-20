@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Tiro_Bangla, Hind_Siliguri, Inter, Fraunces } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/i18n";
 import { getLang } from "@/lib/lang-server";
@@ -29,7 +30,34 @@ export const metadata: Metadata = {
   },
 };
 
-// WebSite JSON-LD (sitelinks searchbox eligible).
+const tiroBangla = Tiro_Bangla({
+  weight: ["400"],
+  style: ["normal", "italic"],
+  subsets: ["bengali", "latin"],
+  variable: "--font-bn-serif",
+  display: "swap",
+});
+
+const hindSiliguri = Hind_Siliguri({
+  weight: ["400", "500", "600", "700"],
+  subsets: ["bengali", "latin"],
+  variable: "--font-bn-sans",
+  display: "swap",
+});
+
+const inter = Inter({
+  weight: ["400", "500", "600", "700", "800"],
+  subsets: ["latin"],
+  variable: "--font-en-sans",
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  weight: ["400", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-en-serif",
+  display: "swap",
+});
 function WebsiteJsonLd() {
   const data = {
     "@context": "https://schema.org",
@@ -51,7 +79,7 @@ const themeInit = `(function(){try{var t=localStorage.getItem('lk-theme')||'syst
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const lang = await getLang();
   return (
-    <html lang={lang} suppressHydrationWarning>
+    <html lang={lang} suppressHydrationWarning className={`${tiroBangla.variable} ${hindSiliguri.variable} ${inter.variable} ${fraunces.variable}`}>
       <head>
         <Script id="theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeInit }} />
         {/* Google AdSense ownership verification only — no ad units enabled. */}
@@ -59,6 +87,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8665718760035175"
           crossOrigin="anonymous"
+          suppressHydrationWarning
         />
         <WebsiteJsonLd />
       </head>

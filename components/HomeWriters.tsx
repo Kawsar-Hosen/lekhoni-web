@@ -41,20 +41,22 @@ export default function HomeWriters({ writers }: { writers: ApiWriter[] }) {
         )}
       </div>
       {list.length ? (
-        <div className="rail">
+        <div className="rail writers-rail">
           {list.map((w) => (
-            <Link key={w.id} href={`/writer/${w.id}`} className="card writer-card">
-              {w.avatar_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={w.avatar_url} alt={w.writer_name} className="avatar" loading="lazy" />
-              ) : (
-                <div className="avatar-fallback">{w.writer_name[0]?.toUpperCase()}</div>
-              )}
-              <div className="wname" style={{ display: "inline-flex", alignItems: "center", gap: 4, justifyContent: "center" }}>
+            <Link key={w.id} href={`/writer/${w.id}`} className="card writer-card-new">
+              <span className="writer-ava-new">
+                {w.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={w.avatar_url} alt={w.writer_name} loading="lazy" />
+                ) : (
+                  <span className="avatar-fallback">{w.writer_name[0]?.toUpperCase()}</span>
+                )}
+              </span>
+              <span className="wname-new">
                 {w.writer_name}
                 <VerifiedBadge badge={w.badge} size={14} />
-              </div>
-              <div className="wsub">{fmtCount(w.follower_count || 0)} {t("followers")}</div>
+              </span>
+              <span className="wsub-new">{fmtCount(w.follower_count || 0)} {t("followers")}</span>
             </Link>
           ))}
         </div>

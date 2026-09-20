@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import BookCard from "@/components/BookCard";
+import NewBooks from "./NewBooks";
 import HomeWriters from "@/components/HomeWriters";
+import HomeRecent from "@/components/HomeRecent";
 import AdSlot from "@/components/AdSlot";
 import { dict } from "@/lib/dict";
 import { getLang } from "@/lib/lang-server";
@@ -69,16 +71,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {fresh.length > 0 && (
-        <section className="section">
-          <SectionHead title={t.newBooks} href="/books" more={t.viewAll} />
-          <div className="grid-books">
-            {fresh.slice(0, 6).map((b) => (
-              <BookCard key={b.id} book={b} />
-            ))}
-          </div>
-        </section>
-      )}
+      {fresh.length > 0 && <NewBooks books={fresh} />}
 
       <AdSlot slot="home-feed" />
 
@@ -109,10 +102,12 @@ export default async function HomePage() {
         <HomeWriters writers={writers || []} />
       </section>
 
+      <HomeRecent />
+
       {topCats.length > 0 && topCats.map((c) => (
         <section className="section" key={c.name}>
           <SectionHead title={c.name} href={`/books?category=${encodeURIComponent(c.name)}`} more={t.viewAll} />
-          <div className="rail">
+          <div className="rail home-rail">
             {c.books.map((b) => (
               <BookCard key={b.id} book={b} />
             ))}

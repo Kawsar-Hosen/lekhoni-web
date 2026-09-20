@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createStory, createChapter, uploadCover, getCategories, submitStoryForReview, type ApiCategory } from "@/lib/api";
 import EditorToolbar from "@/components/EditorToolbar";
 import RichText from "@/components/RichText";
+import Icon from "@/components/Icon";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
 
@@ -14,52 +15,68 @@ export default function WriteForm() {
   const { session, ready } = useAuth();
   const router = useRouter();
   const [cats, setCats] = useState<ApiCategory[]>([]);
-  const [title, setTitle] = useState("");
-  const [desc, setDesc] = useState("");
-  const [cat, setCat] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [chTitle, setChTitle] = useState("");
-  const [chBody, setChBody] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [doneId, setDoneId] = useState("");
   const [doneStatus, setDoneStatus] = useState<"draft" | "pending" | "published">("draft");
-  const [step, setStep] = useState(0);
   const [previewUrl, setPreviewUrl] = useState("");
-  const chBodyRef = useRef<HTMLTextAreaElement | null>(null);
-  const [vis, setVis] = useState<"both" | "website">("both");
-  const [stype, setStype] = useState<"episodes" | "complete">("episodes");
-  const [restored, setRestored] = useState(false);
+  const [taEl, setTaEl] = useState<HTMLTextAreaElement | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const DRAFT_KEY = "lk-write-draft";
 
-  useEffect(() => {
+  const readDraft = () => {
     try {
+      if (typeof window === "undefined") return null;
       const raw = window.localStorage.getItem(DRAFT_KEY);
-      if (raw) {
-        const d = JSON.parse(raw);
-        if (typeof d.title === "string") setTitle(d.title);
-        if (typeof d.desc === "string") setDesc(d.desc);
-        if (typeof d.cat === "string") setCat(d.cat);
-        if (typeof d.chTitle === "string") setChTitle(d.chTitle);
-        if (typeof d.chBody === "string") setChBody(d.chBody);
-        if (d.vis === "website" || d.vis === "both") setVis(d.vis);
-        if (d.stype === "complete" || d.stype === "episodes") setStype(d.stype);
-        if (typeof d.step === "number") setStep(Math.min(Math.max(d.step, 0), 3));
-      }
+      if (raw) return JSON.parse(raw);
     } catch {}
-    setRestored(true);
-  }, []);
+    return null;
+  };
+
+  // Lazy init from draft (no setState-in-effect).
+  const [title, setTitle] = useState(() => {
+    const v = readDraft()?.title;
+    return typeof v === "string" ? v : "";
+  });
+  const [desc, setDesc] = useState(() => {
+    const v = readDraft()?.desc;
+    return typeof v === "string" ? v : "";
+  });
+  const [cat, setCat] = useState(() => {
+    const v = readDraft()?.cat;
+    return typeof v === "string" ? v : "";
+  });
+  const [chTitle, setChTitle] = useState(() => {
+    const v = readDraft()?.chTitle;
+    return typeof v === "string" ? v : "";
+  });
+  const [chBody, setChBody] = useState(() => {
+    const v = readDraft()?.chBody;
+    return typeof v === "string" ? v : "";
+  });
+  const [vis, setVis] = useState<"both" | "website">(() => {
+    const v = readDraft()?.vis;
+    return v === "website" ? "website" : "both";
+  });
+  const [stype, setStype] = useState<"episodes" | "complete">(() => {
+    const v = readDraft()?.stype;
+    return v === "complete" ? "complete" : "episodes";
+  });
+  const [step, setStep] = useState(() => {
+    const v = readDraft()?.step;
+    return typeof v === "number" ? Math.min(Math.max(v, 0), 3) : 0;
+  });
 
   useEffect(() => {
-    if (!restored) return;
     try {
       window.localStorage.setItem(
         DRAFT_KEY,
         JSON.stringify({ title, desc, cat, chTitle, chBody, vis, stype, step })
       );
     } catch {}
-  }, [title, desc, cat, chTitle, chBody, vis, stype, step, restored]);
+  }, [title, desc, cat, chTitle, chBody, vis, stype, step]);
 
   const clearDraft = () => {
     try {
@@ -312,7 +329,10 @@ export default function WriteForm() {
 
       {step === 1 && (
         <>
-          <label className="fld-lb">{t("storyCover")} *</label>
+          <label className="fld-lb">
+            {t("storyCover")} <span className="req-star">*</span>
+          </label>
+          <p className="wiz-hint req-note">{t("coverRequired")}</p>
           <input className="input" type="file" accept="image/*" onChange={(e) => onFile(e.target.files?.[0] || null)} />
           {previewUrl && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -329,8 +349,28 @@ export default function WriteForm() {
               <input className="input" value={chTitle} onChange={(e) => setChTitle(e.target.value)} placeholder={t("chapterTitlePh")} style={{ marginBottom: 8 }} />
             </>
           )}
-          <EditorToolbar value={chBody} onChange={setChBody} textAreaRef={chBodyRef} />
-          <textarea ref={chBodyRef} className="textarea" value={chBody} onChange={(e) => setChBody(e.target.value)} placeholder={t("chapterBodyPh")} style={{ minHeight: 220 }} />
+          <div className="ed-row">
+            <div style={{ flex: 1 }}>
+              <EditorToolbar value={chBody} onChange={setChBody} el={taEl} />
+            </div>
+            <button
+              type="button"
+              className={`ed-preview-toggle${showPreview ? " on" : ""}`}
+              onClick={() => setShowPreview((v) => !v)}
+              title="Preview"
+              aria-label="Preview"
+            >
+              <Icon name={showPreview ? "eyeOff" : "eye"} size={15} />
+            </button>
+          </div>
+          <textarea ref={setTaEl} className="textarea" value={chBody} onChange={(e) => setChBody(e.target.value)} placeholder={t("chapterBodyPh")} style={{ minHeight: 220 }} />
+          {showPreview && chBody.trim() ? (
+            <div className="card live-preview">
+              <article className="reader reader-sm">
+                <RichText body={chBody} />
+              </article>
+            </div>
+          ) : null}
         </>
       )}
 

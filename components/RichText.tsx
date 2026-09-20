@@ -9,6 +9,8 @@ function inline(s: string): string {
   h = h.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   h = h.replace(/(^|\W)\*([^*\n]+?)\*/g, "$1<em>$2</em>");
   h = h.replace(/==(.+?)==/g, "<mark>$1</mark>");
+  h = h.replace(/~~(.+?)~~/g, "<del>$1</del>");
+  h = h.replace(/`([^`\n]+?)`/g, "<code>$1</code>");
   return h;
 }
 
@@ -31,6 +33,9 @@ export function renderRich(body: string | null | undefined): string {
     if (line.startsWith("## ")) {
       closeList();
       html += `<h3 class="rich-h">${inline(line.slice(3))}</h3>`;
+    } else if (/^(-{3,}|\*{3,})$/.test(line)) {
+      closeList();
+      html += `<hr class="rich-hr" />`;
     } else if (line.startsWith("- ")) {
       if (!inList) {
         html += "<ul class=\"rich-ul\">";

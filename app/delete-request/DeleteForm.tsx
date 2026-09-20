@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useLang } from "@/lib/i18n";
+import { useLang, type DictKey } from "@/lib/i18n";
 
 const API = "/backend";
 
@@ -9,10 +9,13 @@ export default function DeleteRequestPage() {
   const { t } = useLang();
   const [contact, setContact] = useState("");
   const [identifier, setIdentifier] = useState("");
+  const [reason, setReason] = useState<DictKey>("delR1");
   const [details, setDetails] = useState("");
   const [msg, setMsg] = useState("");
   const [ok, setOk] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  const REASONS: DictKey[] = ["delR1", "delR2", "delR3", "delR4", "delR5", "delR6"];
 
   const send = async () => {
     if (!contact.trim() || !identifier.trim() || busy) {
@@ -26,7 +29,11 @@ export default function DeleteRequestPage() {
       const r = await fetch(`${API}/api/public/deletion-requests`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ contact: contact.trim(), identifier: identifier.trim(), details: details.trim() }),
+        body: JSON.stringify({
+          contact: contact.trim(),
+          identifier: identifier.trim(),
+          details: `[${t(reason)}] ${details.trim()}`,
+        }),
       });
       if (r.status === 429) {
         setOk(false);
@@ -51,30 +58,39 @@ export default function DeleteRequestPage() {
   return (
     <div className="narrow">
       <div className="section">
-        <h1 style={{ fontSize: 28, margin: "0 0 8px" }}>{t("delTitle")}</h1>
-        <p style={{ color: "var(--muted)", fontSize: 14 }}>
-          {t("delIntro")}
-        </p>
-        <div className="card" style={{ padding: 18, marginTop: 12 }}>
-          <label style={{ display: "block", fontSize: 13, fontWeight: 700, marginBottom: 4 }}>
-            {t("delContactL")}
-          </label>
-          <input className="input" type="email" value={contact} onChange={(e) => setContact(e.target.value)} placeholder="you@example.com" autoComplete="email" />
-          <label style={{ display: "block", fontSize: 13, fontWeight: 700, margin: "12px 0 4px" }}>
-            {t("delIdentL")}
-          </label>
+        <div className="contact-hero">
+          <h1>{t("delTitle")}</h1>
+          <p>{t("delIntro")}</p>
+          <span className="contact-sla">{t("respond48")}</span>
+        </div>
+        <div className="card del-card">
+          <label className="fld-lb">{t("delReasonL")}</label>
+          <select
+            className="input"
+            value={reason}
+            onChange={(e) => setReason(e.target.value as DictKey)}
+            style={{ marginBottom: 14 }}
+          >
+            {REASONS.map((rk) => (
+              <option key={rk} value={rk}>
+                {t(rk)}
+              </option>
+            ))}
+          </select>
+          <label className="fld-lb">{t("delContactL")}</label>
+          <input className="input" type="email" value={contact} onChange={(e) => setContact(e.target.value)} placeholder="you@example.com" autoComplete="email" style={{ marginBottom: 12 }} />
+          <label className="fld-lb">{t("delIdentL")}</label>
           <input
             className="input"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
             placeholder={t("delIdentPh")}
+            style={{ marginBottom: 12 }}
           />
-          <label style={{ display: "block", fontSize: 13, fontWeight: 700, margin: "12px 0 4px" }}>
-            {t("delDetL")}
-          </label>
+          <label className="fld-lb">{t("delDetL")}</label>
           <textarea className="textarea" value={details} onChange={(e) => setDetails(e.target.value)} />
-          <button className="btn" onClick={send} disabled={busy} style={{ marginTop: 12, width: "100%" }}>
-            {t("delSubmit")}
+          <button className="btn btn-premium" onClick={send} disabled={busy} style={{ marginTop: 14, width: "100%" }}>
+            {busy ? t("loading") : t("delSubmit")}
           </button>
           {msg && (
             <p style={{ color: ok ? "green" : "red", fontWeight: 700, fontSize: 14, textAlign: "center" }}>{msg}</p>

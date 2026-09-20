@@ -15,31 +15,42 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ContactPage() {
   const lang = await getLang();
   const t = dict[lang];
-  const socials: { name: SocialName; label: string; sub: string; href: string }[] = [
-    { name: "whatsapp", label: "WhatsApp", sub: "+880 1926-890544", href: "https://wa.me/8801926890544" },
-    { name: "telegram", label: "Telegram", sub: "@xyteee", href: "https://t.me/xyteee" },
+  const socials: { name: SocialName; label: string; href: string }[] = [
+    { name: "whatsapp", label: "WhatsApp", href: "https://wa.me/8801926890544" },
+    { name: "telegram", label: "Telegram", href: "https://t.me/xyteee" },
   ];
   return (
     <div className="narrow">
       <div className="section">
-        <h1 style={{ fontSize: 28, margin: "0 0 12px" }}>{t.contactTitle}</h1>
-        <div className="card contact-help">
+        <div className="contact-hero">
+          <h1>{t.contactTitle}</h1>
           <p>{t.contactHelp}</p>
-          <p className="contact-mail">
-            <a href="mailto:lekhoni-kahini@xyteee.com">
-              lekhoni-kahini@xyteee.com
-            </a>
-            <span>· {t.respond48}</span>
-          </p>
+          <span className="contact-sla">{t.respond48}</span>
         </div>
-        <h2 className="contact-sub">{t.contactFollow}</h2>
-        <div className="social-row">
-          {socials.map((s) => (
-            <a key={s.name} className={`social-ic si-${s.name}`} href={s.href} target="_blank" rel="noreferrer" title={s.label} aria-label={`${s.label} — ${s.sub}`}>
-              <SocialIcon name={s.name} size={22} />
-            </a>
-          ))}
-        </div>
+        <a className="card contact-row" href="mailto:lekhoni-kahini@xyteee.com">
+          <span className="contact-ic mail">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <path d="m2 7 10 6L22 7" />
+            </svg>
+          </span>
+          <span className="contact-tx">
+            <strong>Email</strong>
+            <span>lekhoni-kahini@xyteee.com</span>
+          </span>
+          <span className="contact-go">→</span>
+        </a>
+        {socials.map((s) => (
+          <a key={s.name} className="card contact-row" href={s.href} target="_blank" rel="noreferrer" aria-label={s.label}>
+            <span className="contact-ic">
+              <SocialIcon name={s.name} size={20} />
+            </span>
+            <span className="contact-tx">
+              <strong>{s.label}</strong>
+            </span>
+            <span className="contact-go">→</span>
+          </a>
+        ))}
       </div>
     </div>
   );

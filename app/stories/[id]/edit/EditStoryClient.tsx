@@ -4,8 +4,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import EditorToolbar from "@/components/EditorToolbar";
+import RichText from "@/components/RichText";
+import Icon from "@/components/Icon";
 import {
   fetchStoryDetail,
   updateStory,
@@ -27,13 +29,16 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
   const [cat, setCat] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [vis, setVis] = useState<"both" | "website">("both");
+  const [wstat, setWstat] = useState("complete");
+  const [isNew, setIsNew] = useState(false);
   const [msg, setMsg] = useState("");
   const [ok, setOk] = useState(false);
   const [busy, setBusy] = useState(false);
   const [chTitle, setChTitle] = useState("");
   const [chBody, setChBody] = useState("");
   const [chMsg, setChMsg] = useState("");
-  const chBodyRef = useRef<HTMLTextAreaElement | null>(null);
+  const [taEl, setTaEl] = useState<HTMLTextAreaElement | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const load = useCallback(() => {
     if (!session) return;
@@ -45,6 +50,8 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
         setDesc(s.description || "");
         setCat(s.category || "");
         setVis((s as { visible_on?: string }).visible_on === "website" ? "website" : "both");
+        setWstat((s as { writer_status?: string }).writer_status === "ongoing" ? "ongoing" : "complete");
+        setIsNew(Boolean((s as { is_new?: boolean }).is_new));
       }
     });
   }, [session, storyId]);
@@ -104,6 +111,8 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
         category: cat,
         ...(coverUrl ? { cover_url: coverUrl } : {}),
         visible_on: vis,
+        writer_status: wstat,
+        is_new: isNew,
       });
       if (r.data && "ok" in r.data) {
         setOk(true);
@@ -187,6 +196,19 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
             {t("visWebsite")}
           </button>
         </div>
+        <label className="fld-lb" style={{ marginTop: 12 }}>{t("storyState")}</label>
+        <div className="vis-pills">
+          <button type="button" className={wstat === "ongoing" ? "chip chip-on" : "chip"} onClick={() => setWstat("ongoing")}>
+            {t("stateOngoing")}
+          </button>
+          <button type="button" className={wstat === "complete" ? "chip chip-on" : "chip"} onClick={() => setWstat("complete")}>
+            {t("stateComplete")}
+          </button>
+        </div>
+        <label className="ed-check" style={{ marginTop: 12 }}>
+          <input type="checkbox" checked={isNew} onChange={(e) => setIsNew(e.target.checked)} />
+          {t("markNew")}
+        </label>
         {story?.cover_url && !file && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={story.cover_url} alt="" style={{ width: 90, borderRadius: 8, marginTop: 12 }} />
@@ -222,15 +244,35 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
           placeholder={t("chapterTitlePh")}
           style={{ marginBottom: 8 }}
         />
-        <EditorToolbar value={chBody} onChange={setChBody} textAreaRef={chBodyRef} />
+        <div className="ed-row">
+          <div style={{ flex: 1 }}>
+            <EditorToolbar value={chBody} onChange={setChBody} el={taEl} />
+          </div>
+          <button
+            type="button"
+            className={`ed-preview-toggle${showPreview ? " on" : ""}`}
+            onClick={() => setShowPreview((v) => !v)}
+            title="Preview"
+            aria-label="Preview"
+          >
+            <Icon name={showPreview ? "eyeOff" : "eye"} size={15} />
+          </button>
+        </div>
         <textarea
-          ref={chBodyRef}
+          ref={setTaEl}
           className="textarea"
           value={chBody}
           onChange={(e) => setChBody(e.target.value)}
           placeholder={t("chapterBodyPh")}
           style={{ minHeight: 160 }}
         />
+        {showPreview && chBody.trim() ? (
+          <div className="card live-preview">
+            <article className="reader reader-sm">
+              <RichText body={chBody} />
+            </article>
+          </div>
+        ) : null}
         {chMsg && <p style={{ fontSize: 13, fontWeight: 700 }}>{chMsg}</p>}
         <button className="btn" onClick={addCh} disabled={busy} style={{ marginTop: 12 }}>
           {t("addChapter")}

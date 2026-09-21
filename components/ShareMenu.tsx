@@ -74,6 +74,33 @@ export default function ShareMenu({ onDone }: { onDone: () => void }) {
           >
             <SocialIcon name="telegram" size={20} />
           </a>
+          <a
+            className="share-app"
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(siteUrl)}`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Facebook"
+          >
+            <SocialIcon name="facebook" size={20} />
+          </a>
+          <a
+            className="share-app"
+            href={`https://x.com/intent/post?text=${encodeURIComponent(t("guestShareTx"))}&url=${encodeURIComponent(siteUrl)}`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="X"
+          >
+            <SocialIcon name="x" size={18} />
+          </a>
+          <a
+            className="share-app"
+            href={`fb-messenger://share?link=${encodeURIComponent(siteUrl)}`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Messenger"
+          >
+            <SocialIcon name="messenger" size={20} />
+          </a>
           <button className="share-app" onClick={share} aria-label={t("copyLink")}>
             <Icon name="edit" size={18} />
           </button>

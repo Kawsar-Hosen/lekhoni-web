@@ -8,5 +8,5 @@ export async function getLang(): Promise<Lang> {
     const c = (await cookies()).get(LANG_COOKIE)?.value;
     if (c === "bn" || c === "en") return c;
   } catch {}
-  return "en";
+  return "bn";
 }

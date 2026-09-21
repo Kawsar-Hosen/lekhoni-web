@@ -25,7 +25,7 @@ function snapshotStore(): Theme {
     const s = window.localStorage.getItem(KEY);
     if (s === "light" || s === "dark" || s === "system") return s;
   } catch {}
-  return "system";
+  return "light";
 }
 
 function subscribePrefersDark(onChange: () => void) {
@@ -42,11 +42,11 @@ const Ctx = createContext<{
   theme: Theme;
   resolved: ResolvedTheme;
   setTheme: (t: Theme) => void;
-}>({ theme: "system", resolved: "light", setTheme: () => {} });
+}>({ theme: "light", resolved: "light", setTheme: () => {} });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Server snapshot is 'system' so hydration matches; client syncs after.
-  const stored = useSyncExternalStore(subscribeStore, snapshotStore, (): Theme => "system");
+  // Server snapshot is 'light' so hydration matches; client syncs after.
+  const stored = useSyncExternalStore(subscribeStore, snapshotStore, (): Theme => "light");
   const [override, setOverride] = useState<Theme | null>(null);
   const theme = override ?? stored;
   const prefersDark = useSyncExternalStore(subscribePrefersDark, snapshotPrefersDark, () => false);

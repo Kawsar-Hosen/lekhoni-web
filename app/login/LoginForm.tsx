@@ -51,7 +51,7 @@ export default function LoginForm() {
       </label>
       <input className="input" value={id} onChange={(e) => setId(e.target.value)} autoComplete="username" style={{ marginBottom: 12 }} />
       <label style={{ display: "block", fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{t("password")}</label>
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+      <div className="pw-wrap" style={{ marginBottom: 12 }}>
         <input
           className="input"
           type={showPw ? "text" : "password"}
@@ -62,7 +62,7 @@ export default function LoginForm() {
             if (e.key === "Enter") submit();
           }}
         />
-        <button type="button" className="icon-btn" onClick={() => setShowPw((v) => !v)} aria-label="show password">
+        <button type="button" className="pw-eye" onClick={() => setShowPw((v) => !v)} aria-label="show password">
           <Icon name={showPw ? "eyeOff" : "eye"} size={16} />
         </button>
       </div>
@@ -70,6 +70,11 @@ export default function LoginForm() {
       <button className="btn" onClick={submit} disabled={busy} style={{ width: "100%", marginTop: 6 }}>
         {t("signIn")}
       </button>
+      <p style={{ fontSize: 13, marginTop: 10, textAlign: "center" }}>
+        <Link href="/forgot" style={{ color: "var(--accent)", fontWeight: 700 }}>
+          {t("forgotPw")}
+        </Link>
+      </p>
       <GoogleButton />
       <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 12 }}>
         {t("noAccount")}{" "}

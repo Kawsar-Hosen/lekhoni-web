@@ -13,7 +13,7 @@ export default function HeaderSearch({ mobile }: { mobile?: boolean }) {
   const { t } = useLang();
   const [q, setQ] = useState("");
   const [debounced, setDebounced] = useState("");
-  const [data, setData] = useState<{ books: ApiBook[]; writers: ApiWriter[] }>({ books: [], writers: [] });
+  const [data, setData] = useState<{ books: ApiBook[]; writers: ApiWriter[] }>(() => cache ?? { books: [], writers: [] });
   const [focus, setFocus] = useState(false);
 
   useEffect(() => {
@@ -22,10 +22,7 @@ export default function HeaderSearch({ mobile }: { mobile?: boolean }) {
   }, [q]);
 
   useEffect(() => {
-    if (!debounced || cache) {
-      if (cache) setData(cache);
-      return;
-    }
+    if (!debounced || cache) return;
     let on = true;
     Promise.all([getBooks(), getWriters()]).then(([b, w]) => {
       if (!on) return;

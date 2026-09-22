@@ -7,7 +7,6 @@ import Icon from "./Icon";
 import HeaderSearch from "./HeaderSearch";
 import ShareMenu from "./ShareMenu";
 import { useLang, type DictKey } from "@/lib/i18n";
-import { useAuth } from "@/lib/auth";
 import { useTheme, type Theme } from "@/lib/theme";
 
 const NAV: { href: string; key: DictKey }[] = [
@@ -20,16 +19,15 @@ const NAV: { href: string; key: DictKey }[] = [
 
 export default function Header() {
   const { lang, setLang, t } = useLang();
-  const { session } = useAuth();
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
-  const [acctOpen, setAcctOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const closeAll = () => {
     setThemeOpen(false);
-    setAcctOpen(false);
+    setShareOpen(false);
   };
 
   return (
@@ -54,13 +52,13 @@ export default function Header() {
         <div className="header-right">
           <div style={{ position: "relative" }}>
             <button
-              className="icon-btn"
-              onClick={() => { closeAll(); setThemeOpen((v) => !v); }}
+              className="icon-plain"
+              onClick={() => setThemeOpen((v) => !v)}
               title={t("theme")}
               aria-label={t("theme")}
               aria-expanded={themeOpen}
             >
-              <Icon name={theme === "light" ? "sun" : theme === "dark" ? "moon" : "system"} size={16} />
+              <Icon name={theme === "light" ? "sun" : theme === "dark" ? "moon" : "system"} size={18} />
             </button>
             {themeOpen && (
               <>
@@ -85,54 +83,34 @@ export default function Header() {
               </>
             )}
           </div>
-          {session ? (
-            <Link className="icon-btn" href="/account" title={session.writer.writer_name} aria-label={t("account")}>
-              {session.writer.avatar_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={session.writer.avatar_url} alt="" width={20} height={20} style={{ borderRadius: "50%", objectFit: "cover" }} />
-              ) : (
-                <Icon name="user" size={16} />
-              )}
-              <span className="hide-sm" style={{ maxWidth: 90, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {session.writer.writer_name}
-              </span>
-            </Link>
-          ) : (
-            <div style={{ position: "relative" }}>
-              <button
-                className="icon-btn"
-                onClick={() => { closeAll(); setAcctOpen((v) => !v); }}
-                title={t("account")}
-                aria-label={t("account")}
-                aria-expanded={acctOpen}
-              >
-                <Icon name="user" size={16} />
-              </button>
-              {acctOpen && (
-                <>
-                  <div
-                    onClick={closeAll}
-                    style={{ position: "fixed", inset: 0, zIndex: 60, cursor: "default" }}
-                    aria-hidden="true"
-                  />
-                  <div className="card acct-menu">
-                    <Link href="/login" onClick={closeAll}>
-                      <Icon name="user" size={15} /> {t("signIn")}
-                    </Link>
-                    <Link href="/register" onClick={closeAll}>
-                      <Icon name="userPlus" size={15} /> {t("signUp")}
-                    </Link>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+          <div style={{ position: "relative" }}>
+            <button
+              className="icon-plain"
+              onClick={() => setShareOpen((v) => !v)}
+              aria-label={t("shareVia")}
+              aria-expanded={shareOpen}
+            >
+              <Icon name="share" size={18} />
+            </button>
+            {shareOpen && (
+              <>
+                <div
+                  onClick={() => setShareOpen(false)}
+                  style={{ position: "fixed", inset: 0, zIndex: 60, cursor: "default" }}
+                  aria-hidden="true"
+                />
+                <div className="card acct-menu more-menu share-drop">
+                  <ShareMenu />
+                </div>
+              </>
+            )}
+          </div>
           <button
-            className="icon-btn menu-btn"
+            className="icon-plain menu-btn menu-btn-lg"
             onClick={() => setOpen((v) => !v)}
             aria-label="Menu"
           >
-            <Icon name={open ? "x" : "menu"} size={16} />
+            <Icon name={open ? "x" : "menu"} size={20} />
           </button>
         </div>
       </div>
@@ -166,9 +144,23 @@ export default function Header() {
               <span className="lang-opt bn">বাং</span>
             </button>
           </div>
-          <div className="mnav-share">
-            <ShareMenu onDone={() => setOpen(false)} />
+          <div className="mnav-row">
+            <span className="mnav-lang-lb">
+              <Icon name={theme === "light" ? "sun" : theme === "dark" ? "moon" : "system"} size={15} /> {t("theme")}
+            </span>
+            <div className="theme-seg">
+              {(["light", "dark", "system"] as Theme[]).map((m) => (
+                <button
+                  key={m}
+                  className={theme === m ? "on" : ""}
+                  onClick={() => setTheme(m)}
+                >
+                  <Icon name={m === "light" ? "sun" : m === "dark" ? "moon" : "system"} size={14} />
+                </button>
+              ))}
+            </div>
           </div>
+
         </nav>
       )}
     </header>

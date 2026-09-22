@@ -321,6 +321,22 @@ export async function resendWriterCode(email: string): Promise<SimpleRes | null>
   return r.data;
 }
 
+export async function forgotWriterPassword(email: string) {
+  return callApi<{ ok: boolean } | { error: string }>(
+    "/api/public/writers/forgot",
+    { method: "POST", headers: jsonHeaders, body: JSON.stringify({ email }) },
+    15000
+  );
+}
+
+export async function resetWriterPassword(email: string, code: string, newPassword: string) {
+  return callApi<{ writer: WriterSession; token: string } | { error: string }>(
+    "/api/public/writers/reset",
+    { method: "POST", headers: jsonHeaders, body: JSON.stringify({ email, code, new_password: newPassword }) },
+    15000
+  );
+}
+
 export async function writerLogin(
   emailOrUsername: string,
   password: string

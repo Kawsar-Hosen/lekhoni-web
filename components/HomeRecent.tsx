@@ -9,21 +9,23 @@ import { useLang } from "@/lib/i18n";
 
 export default function HomeRecent() {
   const { t } = useLang();
+  const [ids] = useState<string[]>(() => (typeof window === "undefined" ? [] : getRecent()));
   const [books, setBooks] = useState<ApiBook[]>([]);
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(() => ids.length === 0);
 
   useEffect(() => {
-    const ids = getRecent();
-    if (!ids.length) {
-      setReady(true);
-      return;
-    }
+    if (!ids.length) return;
+    let on = true;
     getBooks().then((all) => {
+      if (!on) return;
       const map = new Map((all || []).map((b) => [b.id, b]));
       setBooks(ids.map((id) => map.get(id)).filter((b): b is ApiBook => Boolean(b)));
       setReady(true);
     });
-  }, []);
+    return () => {
+      on = false;
+    };
+  }, [ids]);
 
   if (!ready || !books.length) return null;
 

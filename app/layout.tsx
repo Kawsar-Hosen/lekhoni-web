@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/lib/theme";
 import { AuthProvider } from "@/lib/auth";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import BottomNav from "@/components/BottomNav";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.xyteee.com"),
@@ -98,6 +99,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <Header />
               <main>{children}</main>
               <Footer />
+              <BottomNav />
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>

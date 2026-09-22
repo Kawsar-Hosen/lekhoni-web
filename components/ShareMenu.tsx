@@ -7,7 +7,7 @@ import { fetchReferral, type ReferralInfo } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
 
-export default function ShareMenu({ onDone }: { onDone: () => void }) {
+export default function ShareMenu() {
   const { t } = useLang();
   const { session } = useAuth();
   const [ref, setRef] = useState<ReferralInfo | null>(null);
@@ -129,7 +129,10 @@ export default function ShareMenu({ onDone }: { onDone: () => void }) {
             aria-label={t("howRefT")}
             title={t("howRefT")}
           >
-            ?
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.6-3 4" />
+              <circle cx="12" cy="18" r="1.2" fill="currentColor" stroke="none" />
+            </svg>
           </button>
         </strong>
         <p>{t("shareSub")}</p>
@@ -150,6 +153,16 @@ export default function ShareMenu({ onDone }: { onDone: () => void }) {
         </div>
       ) : (
         <>
+          <div className="ref-cards">
+            <div className="card ref-card">
+              <span className="ref-n">{ref.uses}</span>
+              <span className="ref-l">{t("refUses")}</span>
+            </div>
+            <div className="card ref-card gold">
+              <span className="ref-n">৳{ref.earnings}</span>
+              <span className="ref-l">{t("refEarnings")}</span>
+            </div>
+          </div>
           <div className="menu-label">{t("myRefLink")}</div>
           <div className="share-linkbox">{link}</div>
           <div className="share-row">
@@ -195,17 +208,6 @@ export default function ShareMenu({ onDone }: { onDone: () => void }) {
             >
               <SocialIcon name="messenger" size={20} />
             </a>
-            <button className="share-app" onClick={() => copy(link, "link2")} aria-label={t("copyLink")}>
-              <Icon name="edit" size={18} />
-            </button>
-          </div>
-          <div className="share-stats">
-            <span>
-              <strong>{ref.uses}</strong> {t("refUses")}
-            </span>
-            <span>
-              <strong>৳{ref.earnings}</strong> {t("refEarnings")}
-            </span>
           </div>
         </>
       )}

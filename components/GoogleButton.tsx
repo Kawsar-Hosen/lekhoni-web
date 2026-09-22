@@ -90,7 +90,7 @@ export default function GoogleButton({ referral }: { referral?: string }) {
     return () => {
       on = false;
     };
-  }, [lang, router, signIn, t]);
+  }, [lang, router, signIn, t, referral]);
 
   return (
     <div style={{ marginTop: 12 }}>

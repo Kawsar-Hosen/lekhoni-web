@@ -24,7 +24,14 @@ export type IconName =
   | "globe"
   | "expand"
   | "volume"
-  | "scroll";
+  | "scroll"
+  | "home"
+  | "filePlus"
+  | "bookOpen"
+  | "plusCircle"
+  | "share"
+  | "grid"
+  | "info";
 
 const PATHS: Record<IconName, ReactNode> = {
   sun: (
@@ -46,7 +53,7 @@ const PATHS: Record<IconName, ReactNode> = {
       <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" />
     </>
   ),
-  menu: <path d="M3 6h18M3 12h18M3 18h18" />,
+  menu: <path d="M4 7h16M4 12h10M4 17h16" />,
   x: <path d="M18 6L6 18M6 6l12 12" />,
   eye: (
     <>
@@ -115,6 +122,54 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <path d="M12 3v18M12 3l-4 4M12 3l4 4" />
       <path d="M5 21h14" />
+    </>
+  ),
+  home: (
+    <>
+      <path d="M3 10.5L12 3l9 7.5" />
+      <path d="M5 9.5V21h14V9.5" />
+      <path d="M9 21v-6h6v6" />
+    </>
+  ),
+  filePlus: (
+    <>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6M9 15h6M12 12v6" />
+    </>
+  ),
+  bookOpen: (
+    <>
+      <path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z" />
+      <path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z" />
+    </>
+  ),
+  plusCircle: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v8M8 12h8" />
+    </>
+  ),
+  share: (
+    <>
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="M8.6 10.6l6.8-4M8.6 13.4l6.8 4" />
+    </>
+  ),
+  grid: (
+    <>
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </>
+  ),
+  info: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v5" />
+      <circle cx="12" cy="8" r="1.2" fill="currentColor" stroke="none" />
     </>
   ),
 };

@@ -30,28 +30,25 @@ export default async function CategoriesPage() {
         <div className="section-head">
           <h2>{t.categories}</h2>
         </div>
-        <div className="grid-writers">
+        <div className="cat-grid-app">
           {(cats || []).map((c) => (
             <Link
               key={c.id}
               href={`/books?category=${encodeURIComponent(c.name)}`}
-              className="card"
-              style={{ padding: 20, display: "flex", alignItems: "center", gap: 12 }}
+              className="cat-app"
             >
-              <span
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
-                  background: c.color || "var(--accent-soft)",
-                  display: "inline-block",
-                  flexShrink: 0,
-                }}
-              />
-              <span>
-                <span style={{ display: "block", fontWeight: 700 }}>{c.name}</span>
-                <span style={{ fontSize: 12, color: "var(--muted)" }}>{counts[c.name] || 0} {t.booksCount}</span>
+              <span className="cat-app-img">
+                {c.cover_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={c.cover_url} alt={c.name} loading="lazy" />
+                ) : (
+                  <span className="cat-app-fb" style={{ backgroundColor: c.color || "var(--accent-soft)" }}>
+                    {c.name[0]}
+                  </span>
+                )}
+                <span className="cat-app-name">{c.name}</span>
               </span>
+              <span className="cat-app-badge">{counts[c.name] || 0} {t.booksCount}</span>
             </Link>
           ))}
         </div>

@@ -37,6 +37,7 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
   const [chTitle, setChTitle] = useState("");
   const [chBody, setChBody] = useState("");
   const [chMsg, setChMsg] = useState("");
+  const isComplete = (story?.story_type || "") === "complete";
   const [taEl, setTaEl] = useState<HTMLTextAreaElement | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -87,10 +88,10 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
     setBusy(true);
     setMsg("");
     try {
-      const wcount = title.trim().split(/\s+/).filter(Boolean).length;
-      if (wcount > 50) {
+      const tlen = title.trim().length;
+      if (tlen < 5 || tlen > 50) {
         setOk(false);
-        setMsg(t("titleMaxW"));
+        setMsg(t("titleMax30"));
         setBusy(false);
         return;
       }
@@ -161,9 +162,9 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
       </div>
       <div className="card" style={{ padding: 20, marginBottom: 16 }}>
         <label className="fld-lb">{t("storyTitle")}</label>
-        <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={300} style={{ marginBottom: 12 }} />
+        <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={50} style={{ marginBottom: 12 }} />
         <label className="fld-lb">{t("storyDesc")}</label>
-        <textarea className="textarea" value={desc} onChange={(e) => setDesc(e.target.value)} maxLength={150} style={{ marginBottom: 12 }} />
+        <textarea className="textarea" value={desc} onChange={(e) => setDesc(e.target.value)} maxLength={500} style={{ marginBottom: 12 }} />
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: 160 }}>
             <label className="fld-lb">{t("storyCategory")}</label>
@@ -219,65 +220,69 @@ export default function EditStoryClient({ storyId }: { storyId: string }) {
         </button>
       </div>
 
-      <div className="section-head">
-        <h2>
-          {t("chaptersLabel")} ({story?.chapters?.length ?? 0})
-        </h2>
-      </div>
-      {(story?.chapters?.length ?? 0) > 0 && (
-        <ol className="chapter-list" style={{ marginBottom: 16 }}>
-          {(story?.chapters || []).map((c, i) => (
-            <li key={c.id}>
-              <span>
-                {i + 1}. {c.title}
-              </span>
-            </li>
-          ))}
-        </ol>
+      {!isComplete && (
+        <>
+          <div className="section-head">
+            <h2>
+              {t("chaptersLabel")} ({story?.chapters?.length ?? 0})
+            </h2>
+          </div>
+          {(story?.chapters?.length ?? 0) > 0 && (
+            <ol className="chapter-list" style={{ marginBottom: 16 }}>
+              {(story?.chapters || []).map((c, i) => (
+                <li key={c.id}>
+                  <span>
+                    {i + 1}. {c.title}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+          <div className="card" style={{ padding: 20 }}>
+            <h3 style={{ fontSize: 15, margin: "0 0 10px" }}>{t("addChapter")}</h3>
+            <input
+              className="input"
+              value={chTitle}
+              onChange={(e) => setChTitle(e.target.value)}
+              placeholder={t("chapterTitlePh")}
+              style={{ marginBottom: 8 }}
+            />
+            <div className="ed-row">
+              <div style={{ flex: 1 }}>
+                <EditorToolbar value={chBody} onChange={setChBody} el={taEl} />
+              </div>
+              <button
+                type="button"
+                className={`ed-preview-toggle${showPreview ? " on" : ""}`}
+                onClick={() => setShowPreview((v) => !v)}
+                title="Preview"
+                aria-label="Preview"
+              >
+                <Icon name={showPreview ? "eyeOff" : "eye"} size={15} />
+              </button>
+            </div>
+            <textarea
+              ref={setTaEl}
+              className="textarea"
+              value={chBody}
+              onChange={(e) => setChBody(e.target.value)}
+              placeholder={t("chapterBodyPh")}
+              style={{ minHeight: 160 }}
+            />
+            {showPreview && chBody.trim() ? (
+              <div className="card live-preview">
+                <article className="reader reader-sm">
+                  <RichText body={chBody} />
+                </article>
+              </div>
+            ) : null}
+            {chMsg && <p style={{ fontSize: 13, fontWeight: 700 }}>{chMsg}</p>}
+            <button className="btn" onClick={addCh} disabled={busy} style={{ marginTop: 12 }}>
+              {t("addChapter")}
+            </button>
+          </div>
+        </>
       )}
-      <div className="card" style={{ padding: 20 }}>
-        <h3 style={{ fontSize: 15, margin: "0 0 10px" }}>{t("addChapter")}</h3>
-        <input
-          className="input"
-          value={chTitle}
-          onChange={(e) => setChTitle(e.target.value)}
-          placeholder={t("chapterTitlePh")}
-          style={{ marginBottom: 8 }}
-        />
-        <div className="ed-row">
-          <div style={{ flex: 1 }}>
-            <EditorToolbar value={chBody} onChange={setChBody} el={taEl} />
-          </div>
-          <button
-            type="button"
-            className={`ed-preview-toggle${showPreview ? " on" : ""}`}
-            onClick={() => setShowPreview((v) => !v)}
-            title="Preview"
-            aria-label="Preview"
-          >
-            <Icon name={showPreview ? "eyeOff" : "eye"} size={15} />
-          </button>
-        </div>
-        <textarea
-          ref={setTaEl}
-          className="textarea"
-          value={chBody}
-          onChange={(e) => setChBody(e.target.value)}
-          placeholder={t("chapterBodyPh")}
-          style={{ minHeight: 160 }}
-        />
-        {showPreview && chBody.trim() ? (
-          <div className="card live-preview">
-            <article className="reader reader-sm">
-              <RichText body={chBody} />
-            </article>
-          </div>
-        ) : null}
-        {chMsg && <p style={{ fontSize: 13, fontWeight: 700 }}>{chMsg}</p>}
-        <button className="btn" onClick={addCh} disabled={busy} style={{ marginTop: 12 }}>
-          {t("addChapter")}
-        </button>
-      </div>
     </>
   );
 }

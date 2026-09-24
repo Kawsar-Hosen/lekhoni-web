@@ -2,6 +2,7 @@ import Link from "next/link";
 import { fmtCount } from "@/components/BookCard";
 import CoverImg from "@/components/CoverImg";
 import Icon from "@/components/Icon";
+import MarqueeTitle from "@/components/MarqueeTitle";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import { getWriters, type ApiBook } from "@/lib/api";
 import { dict } from "@/lib/dict";
@@ -13,7 +14,14 @@ export default async function NewBooks({ books }: { books: ApiBook[] }) {
   const list = books.slice(0, 6);
   if (!list.length) return null;
   const writers = (await getWriters()) || [];
-  const wmap = new Map(writers.map((w) => [w.writer_name, w]));
+  const RANK: Record<string, number> = { verified: 3, top: 2, popular: 1, none: 0 };
+  const wmap = new Map<string, (typeof writers)[number]>();
+  for (const w of writers) {
+    const prev = wmap.get(w.writer_name);
+    if (!prev || (RANK[w.badge || "none"] ?? 0) > (RANK[prev.badge || "none"] ?? 0)) {
+      wmap.set(w.writer_name, w);
+    }
+  }
   return (
     <section className="section">
       <div className="section-head">
@@ -44,8 +52,8 @@ export default async function NewBooks({ books }: { books: ApiBook[] }) {
               <div className="nb-rows">
                 <div className="nb-row">
                   <span className="nb-k">{t.bookLbl}:</span>
-                  <Link href={`/book/${b.id}`} className="nb-title">
-                    {b.title}
+                  <Link href={`/book/${b.id}`} className="nb-title-link">
+                    <MarqueeTitle text={b.title} />
                   </Link>
                 </div>
                 <div className="nb-row">
@@ -70,9 +78,11 @@ export default async function NewBooks({ books }: { books: ApiBook[] }) {
                 <span className="nb-views">
                   <Icon name="eye" size={12} /> {fmtCount(b.views)}
                 </span>
-                {(b.writer_status === "ongoing" || b.display_status === "ongoing") && (
-                  <span className="nb-status2 st-on">{t.ongoingSt}</span>
-                )}
+                {(b.story_type || "") === "complete" ? (
+                  <span className="nb-status2 st-on">{t.typeComplete}</span>
+                ) : (b.writer_status || "") !== "complete" ? (
+                  <span className="nb-status2 st-on2">{t.ongoingSt}</span>
+                ) : null}
                 {b.is_new && (
                   <span className="nb-status2 st-new">{t.newSt}</span>
                 )}

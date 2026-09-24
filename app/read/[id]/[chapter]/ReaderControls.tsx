@@ -21,6 +21,7 @@ export default function ReaderControls({
   const [fs, setFs] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [auto, setAuto] = useState(false);
+  const [showParts, setShowParts] = useState(false);
   const autoRef = useRef(0);
 
   const toggleFs = async () => {
@@ -142,9 +143,11 @@ export default function ReaderControls({
         </Link>
         <div className="rd-title">
           <span className="rd-book">{bookTitle}</span>
-          <span className="rd-ch">
-            {t("chapterWord")} {index + 1} {t("ofWord")} {total}
-          </span>
+          {total > 1 && (
+            <span className="rd-ch">
+              {t("chapterWord")} {index + 1} {t("ofWord")} {total}
+            </span>
+          )}
         </div>
         <div className="rd-font" role="group" aria-label={t("fontSize")}>
           <button onClick={() => setSize((s) => Math.max(14, s - 1))} aria-label={t("decrease")}>
@@ -179,6 +182,14 @@ export default function ReaderControls({
         >
           <Icon name="scroll" size={16} />
         </button>
+        <button
+          className={`rd-ic${showParts ? " on" : ""}`}
+          onClick={() => setShowParts((v) => !v)}
+          aria-label={t("chapters")}
+          title={t("chapters")}
+        >
+          <Icon name="grid" size={16} />
+        </button>
         {index > 0 ? (
           <Link className="rd-btn" href={`/read/${bookId}/${index - 1}`}>
             <Icon name="chevL" size={16} /> {t("prevChapter")}
@@ -189,7 +200,7 @@ export default function ReaderControls({
           </Link>
         )}
         <span className="rd-pg">
-          {index + 1}/{total}
+          {total > 1 ? `${index + 1}/${total}` : "•"}
         </span>
         {index < total - 1 ? (
           <Link className="rd-btn primary" href={`/read/${bookId}/${index + 1}`}>
@@ -201,6 +212,24 @@ export default function ReaderControls({
           </Link>
         )}
       </div>
+      {showParts && total > 1 && (
+        <div className="card rd-parts">
+          <div className="rd-parts-h">
+            {t("chapters")} ({total})
+          </div>
+          <div className="rd-parts-grid">
+            {Array.from({ length: total }, (_, i) => (
+              <Link
+                key={i}
+                href={`/read/${bookId}/${i}`}
+                className={i === index ? "rd-part on" : "rd-part"}
+              >
+                {i + 1} {t("episodes")}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
     </>
   );

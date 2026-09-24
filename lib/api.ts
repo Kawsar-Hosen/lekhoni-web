@@ -26,6 +26,7 @@ export type ApiBook = {
   visible_on?: string;
   display_status?: string;
   writer_status?: string;
+  story_type?: string;
   is_new?: boolean;
   featured?: boolean;
   pdf_url?: string;
@@ -372,6 +373,7 @@ export type WriterStory = {
   views: number;
   likes: number;
   chapters_count: number;
+  story_type?: string;
   created_at: string;
   updated_at: string;
 };
@@ -422,6 +424,7 @@ export type StoryDetail = {
   visible_on?: string;
   writer_status?: string;
   is_new?: boolean;
+  story_type?: string;
   chapters?: { id: string; title: string; body?: string; position: number }[];
 };
 
@@ -462,12 +465,12 @@ export async function updateWriterProfile(
 
 export async function createStory(
   token: string,
-  input: { title: string; description: string; category: string; cover_url?: string; visible_on?: VisibleOn }
+  input: { title: string; description: string; category: string; cover_url?: string; visible_on?: VisibleOn; story_type?: "episodes" | "complete" }
 ) {
   return callApi<{ id: string; title: string; status: string } & Record<string, unknown>>("/api/writer/stories", {
     method: "POST",
     headers: authHeaders(token),
-    body: JSON.stringify({ title: input.title, description: input.description, category: input.category, cover_url: input.cover_url || null, visible_on: input.visible_on || "both", hide_title_on_cover: true }),
+    body: JSON.stringify({ title: input.title, description: input.description, category: input.category, cover_url: input.cover_url || null, visible_on: input.visible_on || "both", story_type: input.story_type || "episodes", hide_title_on_cover: true }),
   });
 }
 

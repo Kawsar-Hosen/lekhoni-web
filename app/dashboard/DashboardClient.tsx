@@ -219,6 +219,11 @@ export default function DashboardClient() {
                       <span className={`pill st-${s.status}`}>
                         {s.status === "pending" ? t("pendingLabel") : s.status}
                       </span>
+                      {(s.story_type || "") === "complete" ? (
+                        <span className="nb-status2 st-on">{t("typeComplete")}</span>
+                      ) : (
+                        <span className="nb-status2 st-on2">{t("ongoingSt")}</span>
+                      )}
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
                         <Icon name="eye" size={12} /> {fmtCount(realViews(s))}
                       </span>

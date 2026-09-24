@@ -58,12 +58,18 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
   const [book, writers] = await Promise.all([getBook(id), getWriters()]);
   if (!book) notFound();
 
-  const writer = (writers || []).find(
-    (w) => w.writer_name === book.author || (book.author_name && w.writer_name === book.author_name)
-  );
+  const RANK: Record<string, number> = { verified: 3, top: 2, popular: 1, none: 0 };
+  const writer = (writers || [])
+    .filter(
+      (w) => w.writer_name === book.author || (book.author_name && w.writer_name === book.author_name)
+    )
+    .sort(
+      (a, b) => (RANK[b.badge || "none"] ?? 0) - (RANK[a.badge || "none"] ?? 0)
+    )[0];
   const chs = book.chapters || [];
   const isPdf = Boolean(book.pdf_url);
-  const isSingle = !isPdf && chs.length === 1;
+  const isComplete = (book.story_type || "") === "complete";
+  const isSingle = !isPdf && (isComplete || chs.length === 1);
 
   return (
     <div className="wrap">
@@ -106,7 +112,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
                 </Link>
               )}
             {!isPdf && (
-              <span className={`type-badge ${isSingle ? "t-complete" : "t-eps"}`}>{isSingle ? t.typeComplete : `${chs.length} ${t.episodes}`}</span>
+              <span className={`type-badge ${isComplete ? "t-complete" : "t-eps"}`}>{isComplete ? t.typeComplete : `${chs.length} ${t.episodes}`}</span>
             )}
             {isPdf && <span className="type-badge t-pdf">{t.pdfBook}</span>}
             </div>
@@ -155,7 +161,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
               <li key={c.id}>
                 <Link href={`/read/${book.id}/${i}`} style={{ width: "100%" }}>
                   <span className="n">{i + 1}</span>
-                  <span>{c.title}</span>
+                  <span>{i + 1} {t.episodes}</span>
                 </Link>
               </li>
             ))}

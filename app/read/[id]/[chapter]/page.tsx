@@ -59,11 +59,11 @@ export default async function ReaderPage({
         <Link href={`/book/${b.id}`} style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)" }}>
           {b.title}
         </Link>
-        <h1 style={{ margin: "6px 0 2px", fontSize: 24 }}>{c.title}</h1>
+        <h1 style={{ margin: "6px 0 2px", fontSize: 24 }}>{idx + 1} {t.episodes}</h1>
         <div style={{ fontSize: 12, color: "var(--muted)" }}>
-          {chs.length > 1
-            ? `${t.chapterWord} ${idx + 1} ${t.ofWord} ${chs.length} · ~${c.minutes || 5} ${t.minRead}`
-            : `~${c.minutes || 5} ${t.minRead}`}
+          {(b.story_type || "") === "complete" || chs.length <= 1
+            ? `~${c.minutes || 5} ${t.minRead}`
+            : `${t.chapterWord} ${idx + 1} ${t.ofWord} ${chs.length} · ~${c.minutes || 5} ${t.minRead}`}
         </div>
       </div>
       <ReaderControls bookId={b.id} bookTitle={b.title} index={idx} total={chs.length} />

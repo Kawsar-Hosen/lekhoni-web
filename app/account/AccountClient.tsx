@@ -6,13 +6,16 @@ import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
 import { useEffect, useState } from "react";
 import VerifiedBadge from "@/components/VerifiedBadge";
-import { fetchMyStories, updateWriterProfile, uploadCover, type WriterStory } from "@/lib/api";
+import Icon from "@/components/Icon";
+import { fmtCount } from "@/components/BookCard";
+import { fetchMyStories, updateWriterProfile, uploadCover, getBooks, type ApiBook, type WriterStory } from "@/lib/api";
 
 export default function AccountClient() {
   const { t } = useLang();
   const { session, ready, signIn, signOut } = useAuth();
   const router = useRouter();
   const [stories, setStories] = useState<WriterStory[]>([]);
+  const [books, setBooks] = useState<ApiBook[]>([]);
   const [editing, setEditing] = useState(false);
   const [eName, setEName] = useState("");
   const [eUser, setEUser] = useState("");
@@ -34,6 +37,9 @@ export default function AccountClient() {
       fetchMyStories(session.token).then((r) => {
         if (on && r.data) setStories(r.data);
       });
+      getBooks().then((b) => {
+        if (on && b) setBooks(b);
+      });
     };
     load();
     window.addEventListener("focus", load);
@@ -51,6 +57,12 @@ export default function AccountClient() {
       </div>
     );
   }
+
+  const num = (v: unknown) => (typeof v === "number" ? v : parseInt(String(v ?? "0").replace(/[^0-9]/g, ""), 10) || 0);
+  const realViews = (s: WriterStory) => {
+    const hit = books.find((b) => b.title.trim() === s.title.trim());
+    return Math.max(num(s.views), hit ? num(hit.views) : 0);
+  };
 
   const startEdit = () => {
     setEName(session.writer.writer_name || "");
@@ -197,7 +209,14 @@ export default function AccountClient() {
                 </Link>
                 <span className="acct-story-meta">
                   <span className={`pill st-${s.status}`}>{s.status}</span>
-                  {typeof s.chapters_count === "number" ? ` · ${s.chapters_count} ${t("chapters")}` : ""}
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                    <Icon name="eye" size={12} /> {fmtCount(realViews(s))}
+                  </span>
+                  {(s.story_type || "") === "complete" ? (
+                    <span className="nb-status2 st-on">{t("typeComplete")}</span>
+                  ) : (
+                    <span>{typeof s.chapters_count === "number" ? `${s.chapters_count} ${t("chapters")}` : ""}</span>
+                  )}
                 </span>
               </div>
             </div>

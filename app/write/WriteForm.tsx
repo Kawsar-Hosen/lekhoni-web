@@ -84,7 +84,7 @@ export default function WriteForm() {
     } catch {}
   };
 
-  const steps = [t("stepInfo"), t("stepCover"), t("stepChapter"), t("stepReview")];
+  const steps = [t("stepInfo"), t("stepCover"), stype === "complete" ? t("typeComplete") : t("stepChapter"), t("stepReview")];
 
   const onFile = (f: File | null) => {
     setFile(f);
@@ -93,22 +93,38 @@ export default function WriteForm() {
   };
 
   const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
+  const [badField, setBadField] = useState("");
 
   const next = () => {
     setErr("");
-    if (step === 0 && !title.trim()) {
-      setErr(t("requiredFields"));
-      return;
-    }
-    if (step === 0 && words(title) > 50) {
-      setErr(t("titleMaxW"));
-      return;
+    setBadField("");
+    if (step === 0) {
+      if (!title.trim()) {
+        setBadField("title");
+        setErr(t("requiredFields"));
+        return;
+      }
+      if (title.trim().length < 5 || title.trim().length > 50) {
+        setBadField("title");
+        setErr(t("titleMax30"));
+        return;
+      }
+      if (desc.trim() && desc.trim().length > 500) {
+        setBadField("desc");
+        setErr(t("descMaxW"));
+        return;
+      }
+      if (!cat) {
+        setBadField("cat");
+        setErr(t("catRequired"));
+        return;
+      }
     }
     if (step === 1 && !file) {
       setErr(t("coverRequired"));
       return;
     }
-    if (step === 2 && ((stype === "episodes" && !chTitle.trim()) || !chBody.trim())) {
+    if (step === 2 && !chBody.trim()) {
       setErr(t("requiredFields"));
       return;
     }
@@ -139,13 +155,17 @@ export default function WriteForm() {
   }
 
   const submit = async () => {
-    const finalChTitle = stype === "complete" ? title.trim() : chTitle.trim();
+    const finalChTitle = stype === "complete" ? title.trim() : chTitle.trim() || `${t("chNumLbl")} 1`;
     if (!title.trim() || !finalChTitle || !chBody.trim() || busy) {
       setErr(t("requiredFields"));
       return;
     }
     if (words(title) > 50) {
       setErr(t("titleMaxW"));
+      return;
+    }
+    if (title.trim().length < 5 || title.trim().length > 50) {
+      setErr(t("titleMax30"));
       return;
     }
     if (chBody.trim().length < 500) {
@@ -171,6 +191,7 @@ export default function WriteForm() {
         category: cat,
         cover_url: coverUrl || undefined,
         visible_on: vis,
+        story_type: stype,
       });
       if (!s.data || !("id" in s.data)) {
         setErr(t("authFailed"));
@@ -250,7 +271,7 @@ export default function WriteForm() {
             </button>
           </div>
         )}
-        {err && <p style={{ color: "red", fontSize: 13, fontWeight: 700, marginTop: 12 }}>{err}</p>}
+      {err && <p className="wiz-err">{err}</p>}
       </div>
     );
   }
@@ -271,12 +292,41 @@ export default function WriteForm() {
 
       {step === 0 && (
         <>
-          <label className="fld-lb">{t("storyTitle")}</label>
-          <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={300} style={{ marginBottom: 12 }} />
-          <label className="fld-lb">{t("storyDesc")}</label>
-          <textarea className="textarea" value={desc} onChange={(e) => setDesc(e.target.value)} maxLength={150} style={{ marginBottom: 12 }} />
-          <label className="fld-lb">{t("storyCategory")}</label>
-          <select className="input" value={cat} onChange={(e) => setCat(e.target.value)} style={{ marginBottom: 6 }}>
+          <label className="fld-lb">{t("storyTitle")} <span className="req-star">*</span></label>
+          <input className={`input${badField === "title" ? " field-err" : ""}`} value={title} onChange={(e) => {
+            const v = e.target.value.slice(0, 50);
+            setTitle(v);
+            if (e.target.value.length > 50) {
+              setBadField("title");
+              setErr(t("titleMax30"));
+            } else {
+              setBadField("");
+              setErr("");
+            }
+          }} style={{ marginBottom: 4 }} />
+          <div className="word-count">{title.length} / 50</div>
+          <label className="fld-lb">{t("storyDesc")} <span className="opt-tag">{t("optionalTag")}</span></label>
+          <textarea className={`textarea${badField === "desc" ? " field-err" : ""}`} value={desc} maxLength={500} onChange={(e) => {
+            setDesc(e.target.value);
+            setBadField("");
+            setErr("");
+          }} onPaste={(e) => {
+            e.preventDefault();
+            const pasted = e.clipboardData.getData("text");
+            const ta = e.target as HTMLTextAreaElement;
+            const s = ta.selectionStart ?? desc.length;
+            const en = ta.selectionEnd ?? desc.length;
+            const merged = desc.slice(0, s) + pasted + desc.slice(en);
+            const cut = merged.slice(0, 500);
+            setDesc(cut);
+            if (merged.length > 500) {
+              setBadField("desc");
+              setErr(t("descMaxW"));
+            }
+          }} style={{ marginBottom: 4 }} />
+          <div className="word-count">{desc.length} / 500</div>
+          <label className="fld-lb">{t("storyCategory")} <span className="req-star">*</span></label>
+          <select className={`input${badField === "cat" ? " field-err" : ""}`} value={cat} onChange={(e) => { setCat(e.target.value); setBadField(""); }} style={{ marginBottom: 6 }}>
             <option value="">—</option>
             {cats.map((c) => (
               <option key={c.id} value={c.name}>
@@ -332,7 +382,6 @@ export default function WriteForm() {
           <label className="fld-lb">
             {t("storyCover")} <span className="req-star">*</span>
           </label>
-          <p className="wiz-hint req-note">{t("coverRequired")}</p>
           <input className="input" type="file" accept="image/*" onChange={(e) => onFile(e.target.files?.[0] || null)} />
           {previewUrl && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -345,7 +394,8 @@ export default function WriteForm() {
         <>
           {stype === "episodes" && (
             <>
-              <label className="fld-lb">{t("storyTitle")}</label>
+              <div className="ch-num">{t("chNumLbl")} 1</div>
+              <label className="fld-lb">{t("chTitleLbl")} <span className="opt-tag">{t("optionalTag")}</span></label>
               <input className="input" value={chTitle} onChange={(e) => setChTitle(e.target.value)} placeholder={t("chapterTitlePh")} style={{ marginBottom: 8 }} />
             </>
           )}
@@ -363,7 +413,7 @@ export default function WriteForm() {
               <Icon name={showPreview ? "eyeOff" : "eye"} size={15} />
             </button>
           </div>
-          <textarea ref={setTaEl} className="textarea" value={chBody} onChange={(e) => setChBody(e.target.value)} placeholder={t("chapterBodyPh")} style={{ minHeight: 220 }} />
+          <textarea ref={setTaEl} className="textarea" value={chBody} onChange={(e) => setChBody(e.target.value)} placeholder={stype === "complete" ? t("fullBodyPh") : t("chapterBodyPh")} style={{ minHeight: 220 }} />
           {showPreview && chBody.trim() ? (
             <div className="card live-preview">
               <article className="reader reader-sm">
@@ -399,7 +449,7 @@ export default function WriteForm() {
         </>
       )}
 
-      {err && <p style={{ color: "red", fontSize: 13, fontWeight: 700, marginTop: 12 }}>{err}</p>}
+      {err && <p className="wiz-err">{err}</p>}
       <div className="wiz-nav">
         {step > 0 ? (
           <button className="btn btn-ghost" onClick={() => { setErr(""); setStep((s) => s - 1); }} disabled={busy}>

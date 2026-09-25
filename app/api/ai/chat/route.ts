@@ -143,7 +143,7 @@ export async function GET() {
     });
     const d = await r.json().catch(() => null);
     const models: string[] = (d?.data || []).map((m: { id?: string }) => m.id).filter(Boolean);
-    return Response.json({ models });
+    return Response.json({ models, _dbg: { status: r.status, hasKey: k.length > 5, err: d?.error || null } });
   } catch {
     return Response.json({ error: "AI failed" }, { status: 502 });
   }

@@ -130,7 +130,7 @@ export default function AiFull() {
     setConsent(v);
   };
 
-  const PROMPT_TEXT = `Lekhoni AI · model ${model || "muse-spark-1.1"} · Bengali-first assistant with live catalogue (books, writers, pages). Recommendations include [book:id] / [writer:id] cards.`;
+  const PROMPT_TEXT = `Lekhoni AI · model ${model || "gemini-3.5-flash"} · Bengali-first assistant with live catalogue (books, writers, pages). Recommendations include [book:id] / [writer:id] cards.`;
 
   const persist = (id: string, m: AiMsg[]) => {
     setChats((prev) => {
@@ -465,7 +465,7 @@ export default function AiFull() {
       if (voiceOn) speak(reply);
       getSuggestions(done)
         .then((s) => {
-          if (s && s.length) setFollowUps(s.slice(0, 4));
+          if (s && s.length >= 3) setFollowUps(s.slice(0, 4));
         })
         .catch(() => {});
     } catch {
@@ -760,7 +760,7 @@ export default function AiFull() {
                       setModelState(e.target.value);
                     }}
                   >
-                    {(models.length ? models : [model || "muse-spark-1.1"]).map((m) => (
+                    {(models.length ? models : [model || "gemini-3.5-flash"]).map((m) => (
                       <option key={m} value={m}>
                         {m}
                       </option>

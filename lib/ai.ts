@@ -2,7 +2,7 @@
 // Users can switch models; choice persists locally.
 export type AiMsg = { role: "user" | "ai"; text: string; image?: string };
 
-export const DEFAULT_MODEL = "muse-spark-1.1";
+export const DEFAULT_MODEL = "gemini-3.5-flash";
 
 export function getModel(): string {
   try {
@@ -37,7 +37,8 @@ export async function getSuggestions(messages: AiMsg[]): Promise<string[] | null
     const r = await fetch("/api/ai/chat", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ messages: payload, model: getModel(), mode: "suggest" }),
+      // lite model follows the 3-line format best
+      body: JSON.stringify({ messages: payload, model: "gemini-3.5-flash-lite", mode: "suggest" }),
     });
     const d = await r.json().catch(() => null);
     if (!r.ok || !Array.isArray(d?.suggestions)) return null;

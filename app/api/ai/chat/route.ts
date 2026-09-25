@@ -141,9 +141,16 @@ export async function GET() {
     const r = await fetch(`${BASE}/models`, {
       headers: { Authorization: `Bearer ${k}` },
     });
-    const d = await r.json().catch(() => null);
+    const raw = await r.text().catch(() => "");
+    const d = (() => {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    })();
     const models: string[] = (d?.data || []).map((m: { id?: string }) => m.id).filter(Boolean);
-    return Response.json({ models, _dbg: { status: r.status, hasKey: k.length > 5, err: d?.error || null } });
+    return Response.json({ models, _dbg: { status: r.status, hasKey: k.length > 5, err: d?.error || raw.slice(0, 200) } });
   } catch {
     return Response.json({ error: "AI failed" }, { status: 502 });
   }

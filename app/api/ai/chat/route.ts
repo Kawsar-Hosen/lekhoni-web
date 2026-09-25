@@ -139,7 +139,12 @@ export async function GET() {
   if (!k) return Response.json({ error: "AI not configured" }, { status: 500 });
   try {
     const r = await fetch(`${BASE}/models`, {
-      headers: { Authorization: `Bearer ${k}` },
+      headers: {
+        Authorization: `Bearer ${k}`,
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        Accept: "application/json",
+      },
     });
     const raw = await r.text().catch(() => "");
     const d = (() => {

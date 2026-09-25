@@ -31,7 +31,9 @@ export type IconName =
   | "plusCircle"
   | "share"
   | "grid"
-  | "info";
+  | "info"
+  | "ai"
+  | "pin";
 
 const PATHS: Record<IconName, ReactNode> = {
   sun: (
@@ -170,6 +172,19 @@ const PATHS: Record<IconName, ReactNode> = {
       <circle cx="12" cy="12" r="9" />
       <path d="M12 11v5" />
       <circle cx="12" cy="8" r="1.2" fill="currentColor" stroke="none" />
+    </>
+  ),
+  ai: (
+    <>
+      <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" />
+      <path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z" />
+      <path d="M5 16l.7 1.8 1.8.7-1.8.7L5 21l-.7-1.8-1.8-.7 1.8-.7z" />
+    </>
+  ),
+  pin: (
+    <>
+      <path d="M9 4h6l1 7 3 3v2H5v-2l3-3z" />
+      <path d="M12 16v5" />
     </>
   ),
 };

@@ -105,6 +105,14 @@ export default function Header() {
               </>
             )}
           </div>
+          <Link
+            className="icon-plain ai-btn"
+            aria-label="AI"
+            title="AI"
+            href="/ai"
+          >
+            <Icon name="ai" size={19} />
+          </Link>
           <button
             className="icon-plain menu-btn menu-btn-lg"
             onClick={() => setOpen((v) => !v)}

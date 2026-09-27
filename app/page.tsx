@@ -114,27 +114,6 @@ export default async function HomePage() {
           </div>
         </section>
       ))}
-
-      <section className="section">
-        <div className="dl-banner">
-          <div className="dl-glow" aria-hidden="true" />
-          <div className="dl-info">
-            <span className="dl-kicker">Lekhoni Kahini · Android</span>
-            <h2>{t.dlTitle}</h2>
-            <p>{t.dlBlurbA}{t.dlBlurbHL}{t.dlBlurbB}</p>
-          </div>
-          <a
-            href="https://play.google.com/store/apps/details?id=com.lekhoni.kahini"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Google Play"
-            className="dl-badge"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/google-play-badge.png" alt="Get it on Google Play" height={56} />
-          </a>
-        </div>
-      </section>
     </div>
   );
 }

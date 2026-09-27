@@ -217,6 +217,49 @@ export async function fetchReferral(token: string) {
   return callApi<ReferralInfo>("/api/writer/referral", { headers: authHeaders(token) }, 15000);
 }
 
+export type QuizQ = { id: string; cat: string; q: string; options: string[] };
+export type QuizRow = { who: string; name: string; xp: number; games?: number };
+
+export async function fetchQuizQuestions(category = "") {
+  try {
+    const r = await fetch(`${base()}/api/public/quiz/questions${category ? `?category=${encodeURIComponent(category)}` : ""}`);
+    const d = (await r.json().catch(() => null)) as QuizQ[] | null;
+    return Array.isArray(d) ? d : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function submitQuiz(input: { qid: string; answer: number; streak: number; token: string }) {
+  const { token, ...body } = input;
+  return callApi<{ correct: boolean; xp: number; counted: boolean; totalXp: number } | { error: string }>(
+    "/api/public/quiz/submit",
+    {
+      method: "POST",
+      headers: { ...jsonHeaders, ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify(body),
+    },
+    15000
+  );
+}
+
+export async function fetchLeaderboard(range: string) {
+  try {
+    const r = await fetch(`${base()}/api/public/quiz/leaderboard?range=${encodeURIComponent(range)}`);
+    const d = (await r.json().catch(() => null)) as QuizRow[] | null;
+    return Array.isArray(d) ? d : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function applyAffiliate(input: { platform: string; username: string; followers: number; contact: string }) {
+  return callApi<{ ok: boolean } | { error: string }>(
+    "/api/public/affiliate-apply",
+    { method: "POST", headers: jsonHeaders, body: JSON.stringify(input) },
+    15000
+  );
+}
 export async function unfollowWriter(deviceId: string, writerId: string): Promise<boolean> {
   try {
     const r = await fetch(

@@ -6,9 +6,7 @@ import { LanguageProvider } from "@/lib/i18n";
 import { getLang } from "@/lib/lang-server";
 import { ThemeProvider } from "@/lib/theme";
 import { AuthProvider } from "@/lib/auth";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import BottomNav from "@/components/BottomNav";
+import Chrome from "@/components/Chrome";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.xyteee.com"),
@@ -96,10 +94,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <ThemeProvider>
           <LanguageProvider initial={lang}>
             <AuthProvider>
-              <Header />
-              <main>{children}</main>
-              <Footer />
-              <BottomNav />
+              <Chrome>{children}</Chrome>
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>

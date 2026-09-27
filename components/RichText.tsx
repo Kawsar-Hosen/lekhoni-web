@@ -4,8 +4,6 @@ function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-const AI_ROUTES = ["writers", "books", "categories", "search", "write", "account", "dashboard", "about", "contact", "privacy"];
-
 function linkifyRoutes(h: string): string {
   return h.replace(/(^|[\s(>])\/(writers|books|categories|search|write|account|dashboard|about|contact|privacy)(?=[\s)<.,!?:;]|$)/g, (_m, pre, route) => {
     const label = route === "writers" ? "Writers" : route.charAt(0).toUpperCase() + route.slice(1);
@@ -64,6 +62,46 @@ export function renderRich(body: string | null | undefined): string {  const lin
 
 export default function RichText({ body }: { body: string | null | undefined }) {
   return <div className="rich-body" dangerouslySetInnerHTML={{ __html: renderRich(body) }} />;
+}
+
+export type AiSeg =
+  | { kind: "text"; text: string }
+  | { kind: "code"; lang: string; code: string };
+
+// Split ```fences out of an AI message so code renders in CodeBlock
+// (highlight + HTML preview) instead of plain text.
+export function splitAiCode(body: string): AiSeg[] {
+  const segs: AiSeg[] = [];
+  const lines = (body || "").split("\n");
+  let inCode = false;
+  let lang = "";
+  let textBuf: string[] = [];
+  let codeBuf: string[] = [];
+  const flushText = () => {
+    const t = textBuf.join("\n");
+    if (t.trim()) segs.push({ kind: "text", text: t });
+    textBuf = [];
+  };
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (/^```/.test(line)) {
+      if (inCode) {
+        inCode = false;
+        segs.push({ kind: "code", lang, code: codeBuf.join("\n").replace(/^\n+|\n+$/g, "") });
+        codeBuf = [];
+      } else {
+        flushText();
+        inCode = true;
+        lang = line.slice(3).trim();
+      }
+      continue;
+    }
+    if (inCode) codeBuf.push(raw);
+    else textBuf.push(raw);
+  }
+  if (inCode) segs.push({ kind: "code", lang, code: codeBuf.join("\n").replace(/^\n+|\n+$/g, "") });
+  else flushText();
+  return segs.length ? segs : [{ kind: "text", text: body || "" }];
 }
 
 // AI chat markdown: **bold**, *italic*, `code`, ==mark==, ~~strike~~,

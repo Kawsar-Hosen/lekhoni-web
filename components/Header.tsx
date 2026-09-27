@@ -10,9 +10,6 @@ import { useLang, type DictKey } from "@/lib/i18n";
 import { useTheme, type Theme } from "@/lib/theme";
 
 const NAV: { href: string; key: DictKey }[] = [
-  { href: "/", key: "home" },
-  { href: "/books", key: "books" },
-  { href: "/categories", key: "categories" },
   { href: "/writers", key: "writers" },
   { href: "/search", key: "search" },
 ];
@@ -132,6 +129,12 @@ export default function Header() {
           ))}
           <Link href="/write" onClick={() => setOpen(false)}>
             {t("writeStory")}
+          </Link>
+          <Link href="/affiliate" onClick={() => setOpen(false)}>
+            {t("affiliate")}
+          </Link>
+          <Link href="/gift" onClick={() => setOpen(false)}>
+            {t("giftSend")}
           </Link>
           <div className="mnav-lang">
             <span className="mnav-lang-lb">

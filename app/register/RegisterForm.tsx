@@ -4,12 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { writerSignup, verifyWriterCode, resendWriterCode } from "@/lib/api";
-import GoogleButton from "@/components/GoogleButton";
+import GoogleButton, { safeNext } from "@/components/GoogleButton";
 import Icon from "@/components/Icon";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
 
-export default function RegisterForm({ verifyEmail = "", initialRef = "" }: { verifyEmail?: string; initialRef?: string }) {
+export default function RegisterForm({ verifyEmail = "", initialRef = "", next = "" }: { verifyEmail?: string; initialRef?: string; next?: string }) {
   const { t } = useLang();
   const { signIn } = useAuth();
   const router = useRouter();
@@ -47,7 +47,7 @@ export default function RegisterForm({ verifyEmail = "", initialRef = "" }: { ve
     }
     if ("writer" in r) {
       signIn(r.writer, r.token);
-      router.push("/account");
+      router.push(safeNext(next));
       return;
     }
     if ("needs_verification" in r) {
@@ -70,7 +70,7 @@ export default function RegisterForm({ verifyEmail = "", initialRef = "" }: { ve
     }
     if ("writer" in r) {
       signIn(r.writer, r.token);
-      router.push("/account");
+      router.push(safeNext(next));
       return;
     }
     setErr(t("authFailed"));
@@ -131,10 +131,10 @@ export default function RegisterForm({ verifyEmail = "", initialRef = "" }: { ve
           <button className="btn" onClick={doSignup} disabled={busy} style={{ width: "100%", marginTop: 8 }}>
             {t("signUp")}
           </button>
-          <GoogleButton referral={refCode.trim() || initialRef} />
+          <GoogleButton referral={refCode.trim() || initialRef} next={next} />
           <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 12 }}>
             {t("haveAccount")}{" "}
-            <Link href="/login" style={{ color: "var(--accent)", fontWeight: 700 }}>
+            <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} style={{ color: "var(--accent)", fontWeight: 700 }}>
               {t("signIn")}
             </Link>
           </p>
@@ -159,7 +159,7 @@ export default function RegisterForm({ verifyEmail = "", initialRef = "" }: { ve
             {t("sendCode")}
           </button>
           <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 12 }}>
-            <Link href="/login" style={{ color: "var(--accent)", fontWeight: 700 }}>
+            <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} style={{ color: "var(--accent)", fontWeight: 700 }}>
               {t("backToLogin")}
             </Link>
           </p>

@@ -24,7 +24,12 @@ declare global {
   }
 }
 
-export default function GoogleButton({ referral }: { referral?: string }) {
+export function safeNext(next?: string): string {
+  if (next && next.startsWith("/") && !next.startsWith("//")) return next;
+  return "/account";
+}
+
+export default function GoogleButton({ referral, next }: { referral?: string; next?: string }) {
   const { signIn } = useAuth();
   const { lang, t } = useLang();
   const router = useRouter();
@@ -66,7 +71,7 @@ export default function GoogleButton({ referral }: { referral?: string }) {
               }
               if ("writer" in r.data) {
                 signIn(r.data.writer, r.data.token);
-                router.push("/account");
+                router.push(safeNext(next));
               } else {
                 setErr(t("authFailed"));
               }
@@ -90,7 +95,7 @@ export default function GoogleButton({ referral }: { referral?: string }) {
     return () => {
       on = false;
     };
-  }, [lang, router, signIn, t, referral]);
+  }, [lang, router, signIn, t, referral, next]);
 
   return (
     <div style={{ marginTop: 12 }}>

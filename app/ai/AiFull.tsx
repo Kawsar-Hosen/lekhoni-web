@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Icon from "@/components/Icon";
 import StoryCard, { isStoryReply } from "@/components/StoryCard";
-import { renderAiMd } from "@/components/RichText";
-import { sendAiMessage, getModel, setModel, listModels, getSuggestions, type AiMsg } from "@/lib/ai";
+import VoiceMode from "./VoiceMode";
+import { renderAiMd, splitAiCode } from "@/components/RichText";
+import CodeBlock from "@/components/CodeBlock";
+import { sendAiMessage, getModel, setModel, listModels, getSuggestions, AiError, aiErrorKey, type AiMsg } from "@/lib/ai";
 import { getBooks, getWriters, type ApiBook, type ApiWriter } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
@@ -13,7 +15,22 @@ import { useTheme } from "@/lib/theme";
 type Chat = { id: string; title: string; msgs: AiMsg[]; pinned: boolean; updatedAt: number };
 
 const LS_KEY = "lk-ai-chats";
-const SUGGESTIONS = ["সারাংশ দাও", "চরিত্র কে কে?", "পরের পর্বে কী হতে পারে?", "লেখায় সাহায্য করো"];
+
+// Professional rotating placeholder phrases (typewriter animation).
+const PH_STATIC_BN = "আপনার প্রশ্ন লিখুন…";
+const PH_STATIC_EN = "Ask anything…";
+const PH_BN = [
+  "গল্পের প্লট সাজিয়ে দাও…",
+  "একটি কবিতা লিখে দাও…",
+  "চরিত্রের নাম সাজেস্ট করো…",
+  "বানান ও ব্যাকরণ ঠিক করে দাও…",
+];
+const PH_EN = [
+  "Outline a story plot…",
+  "Write a poem for me…",
+  "Suggest character names…",
+  "Fix spelling and grammar…",
+];
 
 function loadChats(): Chat[] {
   try {
@@ -24,39 +41,108 @@ function loadChats(): Chat[] {
   }
 }
 
+function loadConsent(): "yes" | "no" | "" {
+  try {
+    const v = window.localStorage.getItem("lk-ai-consent");
+    return v === "yes" || v === "no" ? v : "";
+  } catch {
+    return "";
+  }
+}
+
+function loadInitialChats(): Chat[] {
+  try {
+    return window.localStorage.getItem("lk-ai-consent") === "yes" ? loadChats() : [];
+  } catch {
+    return [];
+  }
+}
+
+const newChatId = () => `c-${Date.now()}`;
+
 export default function AiFull() {
   const { t, lang, setLang } = useLang();
   const { theme, setTheme } = useTheme();
-  const [consent, setConsent] = useState<"yes" | "no" | "">("");
-
+  const [consent, setConsent] = useState<"yes" | "no" | "">(loadConsent);
+  // Fullscreen chat: lock document scroll so the mobile keyboard
+  // cannot pan the page and hide the top bar. Chat scrolls internally.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+  // Typewriter placeholder animation (static text for reduced motion).
+  const [phText, setPhText] = useState(() => {
+    try {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return lang === "bn" ? PH_STATIC_BN : PH_STATIC_EN;
+      }
+    } catch {}
+    return "";
+  });
   useEffect(() => {
     try {
-      const v = window.localStorage.getItem("lk-ai-consent");
-      if (v === "yes" || v === "no") setConsent(v);
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     } catch {}
-  }, []);
+    const phrases = lang === "bn" ? PH_BN : PH_EN;
+    let pi = 0;
+    let ci = 0;
+    let del = false;
+    let timer = 0;
+    const tick = () => {
+      const full = phrases[pi % phrases.length];
+      if (!del) {
+        ci += 1;
+        setPhText(full.slice(0, ci));
+        if (ci >= full.length) {
+          del = true;
+          timer = window.setTimeout(tick, 1600);
+          return;
+        }
+        timer = window.setTimeout(tick, 55);
+      } else {
+        ci -= 2;
+        if (ci <= 0) {
+          setPhText("");
+          del = false;
+          pi += 1;
+          timer = window.setTimeout(tick, 400);
+          return;
+        }
+        setPhText(full.slice(0, ci));
+        timer = window.setTimeout(tick, 26);
+      }
+    };
+    timer = window.setTimeout(tick, 600);
+    return () => window.clearTimeout(timer);
+  }, [lang]);
   const [view, setView] = useState<"home" | "chat">("home");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [chats, setChats] = useState<Chat[]>([]);
+  const [chats, setChats] = useState<Chat[]>(loadInitialChats);
   const [activeId, setActiveId] = useState("");
   const [msgs, setMsgs] = useState<AiMsg[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<{ file: File; url: string } | null>(null);
   const [followUps, setFollowUps] = useState<string[]>([]);
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [promptCopied, setPromptCopied] = useState(false);
   const [catalog, setCatalog] = useState<{ books: Map<string, ApiBook>; writers: Map<string, ApiWriter> }>({
     books: new Map(),
     writers: new Map(),
   });
   const [models, setModels] = useState<string[]>([]);
-  const [model, setModelState] = useState<string>("");
-  const [listening, setListening] = useState(false);
-  const [voiceOpen, setVoiceOpen] = useState(false);
-  const [voiceText, setVoiceText] = useState("");
-  const recogRef = useRef<{ stop: () => void } | null>(null);
+  const [model, setModelState] = useState<string>(getModel);
+  const [voiceMode, setVoiceMode] = useState(false);
+  const [online, setOnline] = useState(true);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [toast, setToast] = useState("");
+  const toastTimer = useRef(0);
+  const installEvt = useRef<Event | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const msgsRef = useRef<AiMsg[]>([]);
+  const activeIdRef = useRef("");
+  const voiceSessionRef = useRef("");
   const [sideView, setSideView] = useState<"chats" | "settings">("chats");
   const [voiceOn, setVoiceOn] = useState(() => {
     try {
@@ -89,11 +175,6 @@ export default function AiFull() {
   const bodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (consent === "yes") setChats(loadChats());
-    else if (consent === "no") setChats([]);
-  }, [consent]);
-
-  useEffect(() => {
     if (consent !== "yes") return;
     try {
       window.localStorage.setItem(LS_KEY, JSON.stringify(chats.slice(0, 20)));
@@ -101,7 +182,6 @@ export default function AiFull() {
   }, [chats, consent]);
 
   useEffect(() => {
-    setModelState(getModel());
     listModels().then((m) => {
       if (m.length) setModels(m);
     });
@@ -126,11 +206,12 @@ export default function AiFull() {
         window.localStorage.removeItem(LS_KEY);
       } catch {}
       setChats([]);
+    } else {
+      setChats(loadChats());
     }
     setConsent(v);
   };
 
-  const PROMPT_TEXT = `Lekhoni AI · model ${model || "gemini-3.5-flash"} · Bengali-first assistant with live catalogue (books, writers, pages). Recommendations include [book:id] / [writer:id] cards.`;
 
   const persist = (id: string, m: AiMsg[]) => {
     setChats((prev) => {
@@ -216,14 +297,33 @@ export default function AiFull() {
     const parts = text.split(/(\[(?:book|writer):[0-9a-f-]{8,}\])/gi);
     return parts.map((p, i) => {
       const m = p.match(/\[(book|writer):([0-9a-f-]{8,})\]/i);
-      if (!m)
+      if (!m) {
+        // Code fences render as interactive CodeBlocks (highlight + preview).
+        const segs = splitAiCode(p);
+        if (segs.length === 1 && segs[0].kind === "text") {
+          return (
+            <span
+              key={`${keyBase}-${i}`}
+              className="ai-md"
+              dangerouslySetInnerHTML={{ __html: renderAiMd(p) }}
+            />
+          );
+        }
         return (
-          <span
-            key={`${keyBase}-${i}`}
-            className="ai-md"
-            dangerouslySetInnerHTML={{ __html: renderAiMd(p) }}
-          />
+          <span key={`${keyBase}-${i}`} className="ai-md">
+            {segs.map((s, j) =>
+              s.kind === "code" ? (
+                <CodeBlock key={`${keyBase}-${i}-${j}`} code={s.code} lang={s.lang} />
+              ) : (
+                <span
+                  key={`${keyBase}-${i}-${j}`}
+                  dangerouslySetInnerHTML={{ __html: renderAiMd(s.text) }}
+                />
+              )
+            )}
+          </span>
         );
+      }
       const [, kind, id] = m;
       if (kind.toLowerCase() === "book") {
         const b = catalog.books.get(id);
@@ -300,7 +400,7 @@ export default function AiFull() {
     if (!lastUser) return;
     setBusy(true);
     try {
-      const reply = await sendAiMessage([...prev, lastUser], {});
+      const reply = await sendAiMessage([...prev, lastUser]);
       const done = [...prev, lastUser, { role: "ai" as const, text: reply }];
       setMsgs(done);
       if (activeId) persist(activeId, done);
@@ -346,64 +446,134 @@ export default function AiFull() {
     } catch {}
   };
 
+  // Live refs so voice exchanges never use stale closures.
+  useEffect(() => {
+    msgsRef.current = msgs;
+  }, [msgs]);
+  // Capture PWA install prompt for "Add to Home" (if browser offers it).
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      installEvt.current = e;
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(""), 2600);
+  };
+
+  const chatText = () =>
+    msgs
+      .map((m) => `${m.role === "user" ? (lang === "bn" ? "তুমি" : "You") : "AI"}: ${m.text}`)
+      .join("\n\n");
+
+  const shareChat = async () => {
+    setMoreOpen(false);
+    if (!msgs.length) return;
+    const text = `${lang === "bn" ? "লেখনী AI চ্যাট" : "Lekhoni AI chat"}\n\n${chatText()}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Lekhoni AI", text });
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      showToast(t("copiedMsg"));
+    } catch {}
+  };
+
+  const downloadChat = () => {
+    setMoreOpen(false);
+    if (!msgs.length) return;
+    try {
+      const blob = new Blob([chatText()], { type: "text/plain;charset=utf-8" });
+      const a = document.createElement("a");
+      const d = new Date();
+      const pad = (n: number) => String(n).padStart(2, "0");
+      a.href = URL.createObjectURL(blob);
+      a.download = `lekhoni-chat-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      showToast(t("aiDownloadedMsg"));
+    } catch {}
+  };
+
+  const addToHome = async () => {
+    setMoreOpen(false);
+    const ev = installEvt.current as (Event & {
+      prompt?: () => Promise<void>;
+      userChoice?: Promise<unknown>;
+    }) | null;
+    if (ev?.prompt) {
+      try {
+        await ev.prompt();
+        await ev.userChoice?.catch(() => null);
+        installEvt.current = null;
+        return;
+      } catch {}
+    }
+    showToast(t("aiAddHomeHint"));
+  };
+
+  const deleteCurrentChat = () => {
+    setMoreOpen(false);
+    if (activeId) delChat(activeId);
+    else if (msgs.length) {
+      setMsgs([]);
+      setView("home");
+    }
+  };
+  // Track connectivity for the offline banner.
+  useEffect(() => {
+    const update = () => {
+      try {
+        setOnline(window.navigator.onLine !== false);
+      } catch {}
+    };
+    update();
+    window.addEventListener("online", update);
+    window.addEventListener("offline", update);
+    return () => {
+      window.removeEventListener("online", update);
+      window.removeEventListener("offline", update);
+    };
+  }, []);
+  useEffect(() => {
+    activeIdRef.current = activeId;
+  }, [activeId]);
+
+  // Append one voice exchange (user + AI) into the chat history.
+  const handleVoiceExchange = (user: string, ai: string) => {
+    if (!voiceSessionRef.current) {
+      voiceSessionRef.current = activeIdRef.current || newChatId();
+    }
+    const id = voiceSessionRef.current;
+    setActiveId(id);
+    const done: AiMsg[] = [
+      ...msgsRef.current,
+      { role: "user", text: user },
+      { role: "ai", text: ai },
+    ];
+    setMsgs(done);
+    persist(id, done);
+    setView("chat");
+  };
+
+  const openVoice = () => {
+    voiceSessionRef.current = "";
+    setVoiceMode(true);
+  };
+
   const regenStory = (userText: string) => {
     if (busy) return;
     ask(
       `${userText}\n\n(আবার নতুন করে লেখো — একই ধরন রেখে ভিন্ন চরিত্র, ঘটনা ও বিবরণ দিয়ে। আগের গল্প হুবহু repeat কোরো না।)`
     );
-  };
-  const toggleMic = () => {
-    if (!voiceOpen) {
-      setVoiceText("");
-      setVoiceOpen(true);
-      startListen();
-      return;
-    }
-    stopListen();
-    setVoiceOpen(false);
-  };
-
-  const startListen = () => {
-    try {
-      const SR =
-        (window as unknown as { SpeechRecognition?: new () => unknown }).SpeechRecognition ||
-        (window as unknown as { webkitSpeechRecognition?: new () => unknown }).webkitSpeechRecognition;
-      if (!SR) return;
-      const rec = new SR() as {
-        lang: string;
-        continuous: boolean;
-        interimResults: boolean;
-        onresult: ((e: { results: { transcript: string; isFinal?: boolean }[][] }) => void) | null;
-        onend: (() => void) | null;
-        start: () => void;
-        stop: () => void;
-      };
-      rec.lang = lang === "bn" ? "bn-BD" : "en-US";
-      rec.continuous = true;
-      rec.interimResults = true;
-      rec.onresult = (e) => {
-        let txt = "";
-        for (const r of e.results) txt += r[0]?.transcript || "";
-        if (txt.trim()) setVoiceText(txt.trim());
-      };
-      rec.onend = () => setListening(false);
-      recogRef.current = rec;
-      rec.start();
-      setListening(true);
-    } catch {}
-  };
-
-  const stopListen = () => {
-    try {
-      recogRef.current?.stop();
-    } catch {}
-    setListening(false);
-  };
-
-  const sendVoice = () => {
-    stopListen();
-    setVoiceOpen(false);
-    if (voiceText.trim()) ask(voiceText.trim());
   };
 
   const clearPending = (revoke = true) => {
@@ -453,11 +623,11 @@ export default function AiFull() {
     });
 
   const askDirect = async (next: AiMsg[]): Promise<boolean> => {
-    const id = activeId || `c-${Date.now()}`;
+    const id = activeId || newChatId();
     if (!activeId) setActiveId(id);
     setBusy(true);
     try {
-      const reply = await sendAiMessage(next, {});
+      const reply = await sendAiMessage(next);
       const done = [...next, { role: "ai" as const, text: reply }];
       setMsgs(done);
       persist(id, done);
@@ -468,8 +638,10 @@ export default function AiFull() {
           if (s && s.length >= 3) setFollowUps(s.slice(0, 4));
         })
         .catch(() => {});
-    } catch {
-      setMsgs([...next, { role: "ai" as const, text: t("authFailed") }]);
+    } catch (e) {
+      // Show the real reason: quota finished, offline, slow net, or busy.
+      const code = e instanceof AiError ? e.code : "unknown";
+      setMsgs([...next, { role: "ai" as const, text: t(aiErrorKey(code)) }]);
       setBusy(false);
       return false;
     }
@@ -656,10 +828,60 @@ export default function AiFull() {
             <img src="/banner1.png" alt="লেখনী কাহিনী" />
           </Link>
         </div>
-        <button className="ai-full-new" onClick={newChat} aria-label="New chat">
-          +
-        </button>
+        <div className="ai-more-wrap">
+          <button
+            className="ai-full-new"
+            onClick={() => setMoreOpen((v) => !v)}
+            aria-label="More options"
+            aria-expanded={moreOpen}
+          >
+            <Icon name="dots" size={17} />
+          </button>
+          {moreOpen && (
+            <>
+              <div className="ai-more-veil" onClick={() => setMoreOpen(false)} />
+              <div className="ai-more" role="menu">
+                <button
+                  className="ai-more-item"
+                  onClick={() => {
+                    setMoreOpen(false);
+                    newChat();
+                  }}
+                >
+                  <Icon name="filePlus" size={16} />
+                  <span>{t("aiNewChat")}</span>
+                </button>
+                <button className="ai-more-item" onClick={shareChat} disabled={!msgs.length}>
+                  <Icon name="share" size={16} />
+                  <span>{t("aiShareChat")}</span>
+                </button>
+                <button className="ai-more-item" onClick={downloadChat} disabled={!msgs.length}>
+                  <Icon name="download" size={16} />
+                  <span>{t("aiDownloadChat")}</span>
+                </button>
+                <button className="ai-more-item" onClick={addToHome}>
+                  <Icon name="home" size={16} />
+                  <span>{t("aiAddHome")}</span>
+                </button>
+                <button
+                  className="ai-more-item danger"
+                  onClick={deleteCurrentChat}
+                  disabled={!msgs.length && !activeId}
+                >
+                  <Icon name="x" size={16} />
+                  <span>{t("aiDeleteChat")}</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
+      {!online && (
+        <div className="ai-offline" role="status">
+          <span className="ai-offline-dot" />
+          {t("aiOfflineBar")}
+        </div>
+      )}
 
       {menuOpen && (
         <>
@@ -971,23 +1193,17 @@ export default function AiFull() {
         </div>
       )}
 
-      {voiceOpen && (
-        <div className="voice-panel">
-          <div className="voice-waves" aria-hidden="true">
-            {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-              <span key={i} style={{ animationDelay: `${i * 0.12}s` }} className={listening ? "" : "paused"} />
-            ))}
-          </div>
-          <p className="voice-text">{voiceText || (listening ? "…" : "")}</p>
-          <div className="voice-btns">
-            <button className="btn btn-ghost" onClick={() => { stopListen(); setVoiceOpen(false); }}>
-              {t("cancelBtn")}
-            </button>
-            <button className="btn btn-premium" onClick={sendVoice} disabled={!voiceText.trim()}>
-              {t("sendBtn")}
-            </button>
-          </div>
+      {toast ? (
+        <div className="ai-toast" role="status">
+          {toast}
         </div>
+      ) : null}
+      {voiceMode && (
+        <VoiceMode
+          seed={msgs.slice(-10)}
+          onExchange={handleVoiceExchange}
+          onClose={() => setVoiceMode(false)}
+        />
       )}
       {pending && (
         <div className="ai-attach">
@@ -1025,11 +1241,11 @@ export default function AiFull() {
           value={input}
           rows={1}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={lang === "bn" ? "লেখো…" : "Type…"}
+          placeholder={phText || (lang === "bn" ? PH_STATIC_BN : PH_STATIC_EN)}
         />
         <button
-          className={`ai-in-mic${listening ? " on" : ""}`}
-          onClick={toggleMic}
+          className={`ai-in-mic${voiceMode ? " on" : ""}`}
+          onClick={openVoice}
           aria-label="Voice"
         >
           <Icon name="volume" size={16} />

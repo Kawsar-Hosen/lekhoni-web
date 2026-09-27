@@ -13,7 +13,12 @@ export const metadata: Metadata = {
 
 const POINTS: DictKey[] = ["loginP1", "loginP2", "loginP3"];
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
+  const sp = await searchParams;
   const lang = await getLang();
   const t = dict[lang];
   return (
@@ -36,7 +41,7 @@ export default async function LoginPage() {
           <div className="auth-form">
             <h2>{t.signIn}</h2>
             <p className="sub">{t.loginSub}</p>
-            <LoginForm />
+            <LoginForm next={sp.next || ""} />
           </div>
         </div>
       </div>

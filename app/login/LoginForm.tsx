@@ -4,12 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
-import GoogleButton from "@/components/GoogleButton";
+import GoogleButton, { safeNext } from "@/components/GoogleButton";
 import { writerLogin } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
 
-export default function LoginForm() {
+export default function LoginForm({ next = "" }: { next?: string }) {
   const { t } = useLang();
   const { signIn } = useAuth();
   const router = useRouter();
@@ -34,7 +34,7 @@ export default function LoginForm() {
     }
     if ("writer" in r) {
       signIn(r.writer, r.token);
-      router.push("/account");
+      router.push(safeNext(next));
       return;
     }
     if ("unverified" in r) {
@@ -75,10 +75,10 @@ export default function LoginForm() {
           {t("forgotPw")}
         </Link>
       </p>
-      <GoogleButton />
+      <GoogleButton next={next} />
       <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 12 }}>
         {t("noAccount")}{" "}
-        <Link href="/register" style={{ color: "var(--accent)", fontWeight: 700 }}>
+        <Link href={next ? `/register?next=${encodeURIComponent(next)}` : "/register"} style={{ color: "var(--accent)", fontWeight: 700 }}>
           {t("signUp")}
         </Link>
       </p>

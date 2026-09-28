@@ -41,29 +41,14 @@ function loadChats(): Chat[] {
   }
 }
 
-function loadConsent(): "yes" | "no" | "" {
-  try {
-    const v = window.localStorage.getItem("lk-ai-consent");
-    return v === "yes" || v === "no" ? v : "";
-  } catch {
-    return "";
-  }
-}
-
-function loadInitialChats(): Chat[] {
-  try {
-    return window.localStorage.getItem("lk-ai-consent") === "yes" ? loadChats() : [];
-  } catch {
-    return [];
-  }
-}
-
 const newChatId = () => `c-${Date.now()}`;
 
 export default function AiFull() {
   const { t, lang, setLang } = useLang();
   const { theme, setTheme } = useTheme();
-  const [consent, setConsent] = useState<"yes" | "no" | "">(loadConsent);
+  // SSR-safe defaults; browser values hydrate post-mount (effect below, after states).
+  // Reading localStorage during render would mismatch SSR HTML (hydration error).
+  const [consent, setConsent] = useState<"yes" | "no" | "">("");
   // Fullscreen chat: lock document scroll so the mobile keyboard
   // cannot pan the page and hide the top bar. Chat scrolls internally.
   useEffect(() => {
@@ -74,17 +59,15 @@ export default function AiFull() {
     };
   }, []);
   // Typewriter placeholder animation (static text for reduced motion).
-  const [phText, setPhText] = useState(() => {
-    try {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        return lang === "bn" ? PH_STATIC_BN : PH_STATIC_EN;
-      }
-    } catch {}
-    return "";
-  });
+  const [phText, setPhText] = useState("");
   useEffect(() => {
     try {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        const id = window.setTimeout(() => {
+          setPhText(lang === "bn" ? PH_STATIC_BN : PH_STATIC_EN);
+        }, 0);
+        return () => window.clearTimeout(id);
+      }
     } catch {}
     const phrases = lang === "bn" ? PH_BN : PH_EN;
     let pi = 0;
@@ -120,7 +103,7 @@ export default function AiFull() {
   }, [lang]);
   const [view, setView] = useState<"home" | "chat">("home");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [chats, setChats] = useState<Chat[]>(loadInitialChats);
+  const [chats, setChats] = useState<Chat[]>([]);
   const [activeId, setActiveId] = useState("");
   const [msgs, setMsgs] = useState<AiMsg[]>([]);
   const [input, setInput] = useState("");
@@ -151,14 +134,22 @@ export default function AiFull() {
       return false;
     }
   });
-  const [textSize, setTextSize] = useState<"s" | "m" | "l">(() => {
+  const [textSize, setTextSize] = useState<"s" | "m" | "l">("m");
+  /* eslint-disable react-hooks/set-state-in-effect -- hydration from localStorage must run post-mount so SSR HTML matches first client render */
+  useEffect(() => {
     try {
-      const v = window.localStorage.getItem("lk-ai-tsize");
-      return v === "s" || v === "l" ? v : "m";
-    } catch {
-      return "m";
-    }
-  });
+      const v = window.localStorage.getItem("lk-ai-consent");
+      if (v === "yes") {
+        setConsent("yes");
+        setChats(loadChats());
+      } else if (v === "no") {
+        setConsent("no");
+      }
+      const ts = window.localStorage.getItem("lk-ai-tsize");
+      if (ts === "s" || ts === "l") setTextSize(ts);
+    } catch {}
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
   const [showSugg, setShowSugg] = useState(() => {
     try {
       return window.localStorage.getItem("lk-ai-sugg") !== "0";

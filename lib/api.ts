@@ -12,6 +12,7 @@ export const REVALIDATE_LIST = 300;
 
 export type ApiBook = {
   id: string;
+  short_id?: string;
   title: string;
   author: string;
   author_name?: string;
@@ -76,6 +77,9 @@ async function get<T>(path: string, revalidate: number): Promise<T | null> {
 
 export const displayAuthor = (b: Pick<ApiBook, 'author_name' | 'author'>) =>
   (b.author_name && b.author_name.trim()) || b.author || '';
+
+// Short public book key for URLs (8 chars); falls back to UUID until backend backfills.
+export const bid = (b: Pick<ApiBook, 'id' | 'short_id'>): string => b.short_id || b.id;
 
 export const bookViews = (b: Pick<ApiBook, 'views'>): number =>
   typeof b.views === 'number' ? b.views : parseInt(String(b.views).replace(/[^0-9]/g, ''), 10) || 0;
@@ -260,6 +264,16 @@ export async function applyAffiliate(input: { platform: string; username: string
     15000
   );
 }
+export async function fetchFollowed(deviceId: string): Promise<{ id: string }[]> {
+  try {
+    const r = await fetch(`${base()}/api/public/follows?device_id=${encodeURIComponent(deviceId)}`);
+    const d = (await r.json().catch(() => null)) as { id: string }[] | null;
+    return Array.isArray(d) ? d : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function unfollowWriter(deviceId: string, writerId: string): Promise<boolean> {
   try {
     const r = await fetch(
@@ -545,4 +559,42 @@ export async function uploadCover(file: File): Promise<{ url?: string; error?: s
   } catch {
     return { error: "network" };
   }
+}
+
+export type WriterNotif = {
+  id: string;
+  title: string;
+  body: string;
+  type: string;
+  story_id: string | null;
+  url: string | null;
+  avatar_url: string | null;
+  story_title: string | null;
+  story_cover: string | null;
+  is_read: boolean;
+  created_at: string;
+};
+
+export async function fetchWriterNotifications(token: string) {
+  return callApi<{ notifications: WriterNotif[]; unread: number }>(
+    "/api/writer/notifications",
+    { headers: authHeaders(token) },
+    15000
+  );
+}
+
+export async function markNotifsRead(token: string, all = true, ids: string[] = []) {
+  return callApi<{ ok: boolean }>(
+    "/api/writer/notifications/read",
+    { method: "POST", headers: { ...jsonHeaders, ...authHeaders(token) }, body: JSON.stringify({ all, ids }) },
+    15000
+  );
+}
+
+export async function clearNotifs(token: string) {
+  return callApi<{ ok: boolean }>(
+    "/api/writer/notifications",
+    { method: "DELETE", headers: authHeaders(token) },
+    15000
+  );
 }

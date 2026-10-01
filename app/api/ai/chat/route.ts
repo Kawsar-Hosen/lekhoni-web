@@ -37,7 +37,7 @@ async function buildCatalogue(): Promise<string> {
       fetch(`${API}/api/public/categories`).then((r) => (r.ok ? r.json() : [])),
     ]);
     const books = (Array.isArray(b) ? b : []).slice(0, 80).map((x: Record<string, unknown>) =>
-      `- "${x.title}" by ${x.author_name || x.author} [${x.category || "?"}] id=${x.id}`
+      `- "${x.title}" by ${x.author_name || x.author} [${x.category || "?"}] id=${x.short_id || x.id}`
     );
     const writers = (Array.isArray(w) ? w : []).slice(0, 60).map((x: Record<string, unknown>) =>
       `- ${x.writer_name} (@${x.username}) id=${x.id}`

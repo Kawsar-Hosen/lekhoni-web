@@ -54,7 +54,7 @@ export default async function ReaderPage({
     <div className="narrow">
       <Breadcrumbs trail={[{ name: "Home", url: "/" }, { name: b.title, url: `/book/${b.id}` }, { name: c.title, url: `/read/${id}/${idx}` }]} />
       <TrackView bookId={b.id} />
-      <ReadProgress />
+      <ReadProgress bookId={id} idx={idx} />
       <div style={{ marginTop: 24, marginBottom: 8 }}>
         <Link href={`/book/${b.id}`} style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)" }}>
           {b.title}

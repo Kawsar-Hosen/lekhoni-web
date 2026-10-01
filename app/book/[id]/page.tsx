@@ -6,7 +6,9 @@ import AdSlot from "@/components/AdSlot";
 import Icon from "@/components/Icon";
 import VerifiedBadge from "@/components/VerifiedBadge";
 import Comments from "@/components/Comments";
-import { LikeButton } from "@/components/Engage";
+import { LikeButton, FollowButton } from "@/components/Engage";
+import BookShare from "@/components/BookShare";
+import ChapterRows from "@/components/ChapterRows";
 import TrackView from "@/components/TrackView";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { fmtCount } from "@/components/BookCard";
@@ -18,7 +20,7 @@ export const revalidate = 1800;
 
 export async function generateStaticParams() {
   const books = (await getBooks()) || [];
-  return books.map((b) => ({ id: b.id }));
+  return books.map((b) => ({ id: b.short_id || b.id }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -29,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return {
     title: b.title,
     description: desc,
-    alternates: { canonical: `/book/${b.id}` },
+    alternates: { canonical: `/book/${b.short_id || b.id}` },
     openGraph: {
       title: b.title,
       description: desc,
@@ -57,6 +59,7 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
   const t = dict[lang];
   const [book, writers] = await Promise.all([getBook(id), getWriters()]);
   if (!book) notFound();
+  const urlId = book.short_id || book.id;
 
   const RANK: Record<string, number> = { verified: 3, top: 2, popular: 1, none: 0 };
   const writer = (writers || [])
@@ -75,78 +78,109 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
     <div className="wrap">
       <BookJsonLd book={book} />
       <Breadcrumbs trail={[{ name: "Home", url: "/" }, { name: t.books, url: "/books" }, { name: book.title, url: `/book/${book.id}` }]} />
-      <TrackView bookId={book.id} />
-      <div className="card book-hero">
-        <div className="book-hero-side">
-          {book.cover_url && (
-            <div className="book-hero-cover-s">
-              <Image
-                src={book.cover_url}
-                alt={book.title}
-                width={440}
-                height={660}
-                className="cover"
-                priority
-                sizes="(max-width: 640px) 120px, 150px"
-              />
-            </div>
+      <TrackView bookId={urlId} />
+      {/* Top bar: back + like + share (design file style) */}
+      <div className="bk-top">
+        <Link href="/books" className="icon-plain" aria-label={t.backBtn}>
+          <Icon name="chevL" size={22} />
+        </Link>
+        <div className="bk-top-acts">
+          <LikeButton bookId={urlId} initialLikes={book.likes} />
+          <BookShare title={book.title} />
+        </div>
+      </div>
+
+      {/* Centered hero: cover, genre, title, author, stats */}
+      <div className="bk-hero">
+        {book.cover_url && (
+          <Image
+            src={book.cover_url}
+            alt={book.title}
+            width={440}
+            height={660}
+            className="bk-cover"
+            priority
+            sizes="160px"
+          />
+        )}
+        {book.category && (
+          <Link
+            href={`/books?category=${encodeURIComponent(book.category)}`}
+            className="bk-genre"
+          >
+            {book.category}
+          </Link>
+        )}
+        <h1 className="bk-title">{book.title}</h1>
+        <div className="bk-author">
+          {lang === "bn" ? "লেখক: " : ""}
+          {writer ? (
+            <Link href={`/writer/${writer.id}`} style={{ fontWeight: 700 }}>
+              {displayAuthor(book)}
+            </Link>
+          ) : (
+            displayAuthor(book)
           )}
-          <div className="book-hero-info-s">
-            <h1 className="book-hero-title">{book.title}</h1>
-            <div className="book-hero-author">
-              <span className="author-chip">
-                {writer?.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={writer.avatar_url} alt={displayAuthor(book)} className="book-hero-ava" />
-                ) : (
-                  <span className="book-hero-ava-fb">{displayAuthor(book)[0]?.toUpperCase()}</span>
-                )}
-                {writer ? <Link href={`/writer/${writer.id}`} style={{ fontWeight: 700 }}>{displayAuthor(book)}</Link> : displayAuthor(book)}
-                {writer && <VerifiedBadge badge={writer.badge} size={15} />}
-              </span>
-            </div>
-            <div className="book-hero-tags">
-              {book.category && (
-                <Link href={`/books?category=${encodeURIComponent(book.category)}`} className="pill">
-                  {book.category}
-                </Link>
-              )}
-            {!isPdf && (
-              <span className={`type-badge ${isComplete ? "t-complete" : "t-eps"}`}>{isComplete ? t.typeComplete : `${chs.length} ${t.episodes}`}</span>
-            )}
-            {isPdf && <span className="type-badge t-pdf">{t.pdfBook}</span>}
-            </div>
-            {book.dedication && (
-              <div className="book-hero-ded">
-                {book.dedication}
-              </div>
-            )}
-          </div>
+          {writer && <VerifiedBadge badge={writer.badge} size={14} />}
         </div>
-        <div className="book-hero-meta">
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="eye" size={13} /> {fmtCount(book.views)} {t.views}</span>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Icon name="heart" size={13} /> {fmtCount(book.likes)} {t.likes}</span>
-          {!isPdf && !isSingle && <span>{chs.length} {t.chapters}</span>}
-          {isPdf && <span>{t.pdfBook}</span>}
+        <div className="bk-stats">
+          <span>
+            <Icon name="eye" size={13} /> {fmtCount(book.views)}
+          </span>
+          {!isPdf && (
+            <span>
+              <Icon name="bookOpen" size={13} />{" "}
+              {isSingle ? `1 ${t.episodes}` : `${chs.length} ${t.episodes}`}
+            </span>
+          )}
+          <span>
+            <Icon name="heart" size={13} /> {fmtCount(book.likes)}
+          </span>
         </div>
-        <div className="book-hero-actions">
-          {isPdf ? (
-            <Link className="btn" href={book.pdf_url as string} target="_blank" rel="noreferrer">
-              {t.openPdf}
-            </Link>
-          ) : chs.length ? (
-            <Link className="btn btn-premium" href={`/read/${book.id}/0`}>
-              {isSingle ? t.readNow : t.startReading}
-            </Link>
-          ) : null}
-          <LikeButton bookId={book.id} initialLikes={book.likes} />
-        </div>
+      </div>
+
+      {/* Read actions */}
+      <div className="bk-btns">
+        {isPdf ? (
+          <Link className="btn btn-premium bk-read" href={book.pdf_url as string} target="_blank" rel="noreferrer">
+            <Icon name="bookOpen" size={17} /> {t.openPdf}
+          </Link>
+        ) : chs.length ? (
+          <Link className="btn btn-premium bk-read" href={`/read/${book.id}/0`}>
+            <Icon name="bookOpen" size={17} /> {isSingle ? t.readNow : t.startReading}
+          </Link>
+        ) : null}
+      </div>
+
+      {/* About + author card */}
+      <div className="card bk-card">
+        {book.dedication && <div className="bk-ded">{book.dedication}</div>}
         {book.description && (
           <>
-            <h2 className="book-hero-desc-h">{t.description}</h2>
-            <p className="book-hero-desc">{book.description}</p>
+            <h2 className="bk-sec">{t.description}</h2>
+            <p className="bk-desc">{book.description}</p>
           </>
         )}
+        <div className="bk-div" />
+        <div className="bk-author-row">
+          {writer?.avatar_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={writer.avatar_url} alt={displayAuthor(book)} className="bk-ava" />
+          ) : (
+            <span className="bk-ava-fb">{displayAuthor(book)[0]?.toUpperCase()}</span>
+          )}
+          <span className="bk-author-tx">
+            <strong>
+              {writer ? (
+                <Link href={`/writer/${writer.id}`}>{displayAuthor(book)}</Link>
+              ) : (
+                displayAuthor(book)
+              )}
+            </strong>
+            <span>{t.moreFromWriter}</span>
+          </span>
+          <FollowButton writerId={writer?.id || null} writerName={displayAuthor(book)} />
+        </div>
       </div>
 
       <AdSlot slot="book-detail" />
@@ -156,21 +190,12 @@ export default async function BookPage({ params }: { params: Promise<{ id: strin
           <div className="section-head">
             <h2>{t.chapters} ({chs.length})</h2>
           </div>
-          <ol className="chapter-list">
-            {chs.map((c, i) => (
-              <li key={c.id}>
-                <Link href={`/read/${book.id}/${i}`} style={{ width: "100%" }}>
-                  <span className="n">{i + 1}</span>
-                  <span>{i + 1} {t.episodes}</span>
-                </Link>
-              </li>
-            ))}
-          </ol>
+          <ChapterRows bookId={urlId} count={chs.length} />
         </section>
       )}
 
       <div className="narrow" style={{ marginLeft: 0 }}>
-        <Comments bookId={book.id} />
+        <Comments bookId={urlId} />
       </div>
     </div>
   );

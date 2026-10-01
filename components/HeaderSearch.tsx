@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Icon from "@/components/Icon";
 import VerifiedBadge from "@/components/VerifiedBadge";
-import { getBooks, getWriters, type ApiBook, type ApiWriter } from "@/lib/api";
+import { getBooks, getWriters, bid, type ApiBook, type ApiWriter } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 
 let cache: { books: ApiBook[]; writers: ApiWriter[] } | null = null;
@@ -71,7 +71,7 @@ export default function HeaderSearch({ mobile }: { mobile?: boolean }) {
         {show && (
           <div className="hsearch-drop">
             {hits.bh.map((b) => (
-              <Link key={b.id} href={`/book/${b.id}`} className="hsearch-row">
+              <Link key={b.id} href={`/book/${bid(b)}`} className="hsearch-row">
                 {b.cover_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={b.cover_url} alt="" loading="lazy" />

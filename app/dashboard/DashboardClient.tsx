@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { useLang } from "@/lib/i18n";
 import { useEffect, useMemo, useState } from "react";
 import Icon from "@/components/Icon";
-import { fetchMyStories, fetchWriterDashboard, fetchReferral, getBooks, submitStoryForReview, deleteStory, type ApiBook, type WriterDashboard, type WriterStory } from "@/lib/api";
+import { fetchMyStories, fetchWriterDashboard, fetchReferral, getBooks, submitStoryForReview, deleteStory, bid, type ApiBook, type WriterDashboard, type WriterStory } from "@/lib/api";
 import { fmtCount } from "@/components/BookCard";
 
 export default function DashboardClient() {
@@ -209,7 +209,7 @@ export default function DashboardClient() {
                   )}
                   <div className="acct-story-info">
                     {s.status === "published" ? (
-                      <Link href={`/book/${s.id}`} style={{ fontSize: 15, fontWeight: 800 }}>
+                      <Link href={`/book/${bid(s)}`} style={{ fontSize: 15, fontWeight: 800 }}>
                         {s.title}
                       </Link>
                     ) : (

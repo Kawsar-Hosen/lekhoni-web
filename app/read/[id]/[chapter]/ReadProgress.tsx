@@ -3,9 +3,20 @@
 import { useEffect, useRef, useState } from "react";
 
 // Thin reading-progress bar fixed to the top. Subtle, functional, no animation.
-export default function ReadProgress() {
+// Also records the highest chapter read per book (for chapter-list read state).
+export default function ReadProgress({ bookId = "", idx = 0 }: { bookId?: string; idx?: number }) {
   const [pct, setPct] = useState(0);
   const raf = useRef(0);
+
+  useEffect(() => {
+    if (bookId) {
+      try {
+        const k = `lk-read-${bookId}`;
+        const prev = parseInt(window.localStorage.getItem(k) || "-1", 10);
+        if (Number.isNaN(prev) || idx > prev) window.localStorage.setItem(k, String(idx));
+      } catch {}
+    }
+  }, [bookId, idx]);
 
   useEffect(() => {
     const onScroll = () => {

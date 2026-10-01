@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Icon from "./Icon";
-import { setLike, followWriter, unfollowWriter } from "@/lib/api";
+import { setLike, followWriter, unfollowWriter, fetchFollowed } from "@/lib/api";
 import { getDeviceId } from "@/lib/device";
 import { useLang } from "@/lib/i18n";
 import { fmtCount } from "./BookCard";
@@ -49,6 +49,18 @@ export function FollowButton({ writerId, writerName }: { writerId: string | null
   const { t } = useLang();
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  // Load real follow state (was always starting at "Follow" — the glitch).
+  useEffect(() => {
+    if (!writerId) return;
+    const dev = getDeviceId();
+    fetchFollowed(dev)
+      .then((list) => {
+        if (list.some((w) => w.id === writerId)) setDone(true);
+      })
+      .catch(() => {});
+  }, [writerId]);
+
   if (!writerId) return null;
 
   const toggle = async () => {
@@ -62,8 +74,14 @@ export function FollowButton({ writerId, writerName }: { writerId: string | null
   };
 
   return (
-    <button className="icon-btn" onClick={toggle} title={writerName}>
-      <Icon name={done ? "userCheck" : "userPlus"} size={15} /> {done ? t("unfollow") : t("follow")}
+    <button
+      className={`follow-pill${done ? " on" : ""}`}
+      onClick={toggle}
+      disabled={busy}
+      title={writerName}
+    >
+      <Icon name={done ? "userCheck" : "userPlus"} size={14} />{" "}
+      {done ? t("unfollow") : t("follow")}
     </button>
   );
 }

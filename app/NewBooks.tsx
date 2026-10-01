@@ -4,7 +4,7 @@ import CoverImg from "@/components/CoverImg";
 import Icon from "@/components/Icon";
 import MarqueeTitle from "@/components/MarqueeTitle";
 import VerifiedBadge from "@/components/VerifiedBadge";
-import { getWriters, type ApiBook } from "@/lib/api";
+import { getWriters, bid, type ApiBook } from "@/lib/api";
 import { dict } from "@/lib/dict";
 import { getLang } from "@/lib/lang-server";
 
@@ -35,7 +35,7 @@ export default async function NewBooks({ books }: { books: ApiBook[] }) {
           const wlink = w ? `/writer/${w.id}` : `/search?q=${encodeURIComponent(aname)}`;
           return (
           <article key={b.id} className="card nb-card">
-            <Link href={`/book/${b.id}`} className="nb-cover">
+            <Link href={`/book/${bid(b)}`} className="nb-cover">
               {b.cover_url ? (
                 <CoverImg
                   src={b.cover_url}
@@ -52,7 +52,7 @@ export default async function NewBooks({ books }: { books: ApiBook[] }) {
               <div className="nb-rows">
                 <div className="nb-row">
                   <span className="nb-k">{t.bookLbl}:</span>
-                  <Link href={`/book/${b.id}`} className="nb-title-link">
+                  <Link href={`/book/${bid(b)}`} className="nb-title-link">
                     <MarqueeTitle text={b.title} />
                   </Link>
                 </div>
@@ -88,7 +88,7 @@ export default async function NewBooks({ books }: { books: ApiBook[] }) {
                 )}
               </div>
               <div className="nb-foot">
-                <Link href={b.pdf_url ? `/book/${b.id}` : `/read/${b.id}/0`} className="btn nb-btn">
+                <Link href={b.pdf_url ? `/book/${bid(b)}` : `/read/${bid(b)}/0`} className="btn nb-btn">
                   <Icon name="book" size={14} /> {t.readShort}
                 </Link>
               </div>

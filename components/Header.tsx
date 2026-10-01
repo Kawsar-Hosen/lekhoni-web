@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Icon from "./Icon";
 import HeaderSearch from "./HeaderSearch";
+import NotifBell from "./NotifBell";
 import ShareMenu from "./ShareMenu";
 import { useLang, type DictKey } from "@/lib/i18n";
 import { useTheme, type Theme } from "@/lib/theme";
@@ -110,6 +111,7 @@ export default function Header() {
           >
             <Icon name="ai" size={19} />
           </Link>
+          <NotifBell />
           <button
             className="icon-plain menu-btn menu-btn-lg"
             onClick={() => setOpen((v) => !v)}

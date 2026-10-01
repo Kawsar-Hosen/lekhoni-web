@@ -21,7 +21,7 @@ function stripMd(s: string): string {
     .replace(/^[-*•]\s+/gm, "")
     .replace(/^\d+[.)]\s+/gm, "")
     .replace(/^>\s?/gm, "")
-    .replace(/\[(book|writer):[0-9a-f-]{8,}\]/gi, "")
+    .replace(/\[(book|writer):[A-Za-z0-9-]{8,}\]/gi, "")
     .trim();
 }
 

@@ -33,7 +33,9 @@ export type IconName =
   | "grid"
   | "info"
   | "ai"
-  | "pin";
+  | "pin"
+  | "bell"
+  | "trash";
 
 const PATHS: Record<IconName, ReactNode> = {
   sun: (
@@ -185,6 +187,17 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <path d="M9 4h6l1 7 3 3v2H5v-2l3-3z" />
       <path d="M12 16v5" />
+    </>
+  ),
+  bell: (
+    <>
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.7 21a2 2 0 0 1-3.4 0" />
+    </>
+  ),
+  trash: (
+    <>
+      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6" />
     </>
   ),
 };

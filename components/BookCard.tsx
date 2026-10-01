@@ -1,7 +1,7 @@
 import Link from "next/link";
 import CoverImg from "@/components/CoverImg";
 import Icon from "@/components/Icon";
-import { displayAuthor, type ApiBook } from "@/lib/api";
+import { displayAuthor, bid, type ApiBook } from "@/lib/api";
 
 export function fmtCount(n: number | string): string {
   const v = typeof n === "number" ? n : parseInt(String(n).replace(/[^0-9]/g, ""), 10) || 0;
@@ -16,7 +16,7 @@ export function fmtCount(n: number | string): string {
 
 export default function BookCard({ book }: { book: ApiBook }) {
   return (
-    <Link href={`/book/${book.id}`} className="card book-card shelf">
+    <Link href={`/book/${bid(book)}`} className="card book-card shelf">
       <span className="shelf-cover">
         {book.cover_url ? (
           <CoverImg

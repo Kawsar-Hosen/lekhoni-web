@@ -8,7 +8,7 @@ import VoiceMode from "./VoiceMode";
 import { renderAiMd, splitAiCode } from "@/components/RichText";
 import CodeBlock from "@/components/CodeBlock";
 import { sendAiMessage, getModel, setModel, listModels, getSuggestions, AiError, aiErrorKey, type AiMsg } from "@/lib/ai";
-import { getBooks, getWriters, type ApiBook, type ApiWriter } from "@/lib/api";
+import { getBooks, getWriters, bid, type ApiBook, type ApiWriter } from "@/lib/api";
 import { useLang } from "@/lib/i18n";
 import { useTheme } from "@/lib/theme";
 
@@ -241,8 +241,8 @@ export default function AiFull() {
 
   const genFollowUps = (reply: string): string[] => {
     const bn = lang === "bn";
-    const hasBook = /\[book:[0-9a-f-]{8,}\]/i.test(reply);
-    const hasWriter = /\[writer:[0-9a-f-]{8,}\]/i.test(reply);
+    const hasBook = /\[book:[A-Za-z0-9-]{8,}\]/i.test(reply);
+    const hasWriter = /\[writer:[A-Za-z0-9-]{8,}\]/i.test(reply);
     const bookM = reply.match(/"([^"]{3,60})"/);
     const name = bookM ? bookM[1] : "";
     if (isStoryReply(reply)) {
@@ -285,9 +285,9 @@ export default function AiFull() {
         />
       );
     }
-    const parts = text.split(/(\[(?:book|writer):[0-9a-f-]{8,}\])/gi);
+    const parts = text.split(/(\[(?:book|writer):[A-Za-z0-9-]{8,}\])/gi);
     return parts.map((p, i) => {
-      const m = p.match(/\[(book|writer):([0-9a-f-]{8,})\]/i);
+      const m = p.match(/\[(book|writer):([A-Za-z0-9-]{8,})\]/i);
       if (!m) {
         // Code fences render as interactive CodeBlocks (highlight + preview).
         const segs = splitAiCode(p);
@@ -320,7 +320,7 @@ export default function AiFull() {
         const b = catalog.books.get(id);
         if (!b) return null;
         return (
-          <Link key={`${keyBase}-${i}`} href={`/book/${b.id}`} className="ai-card">
+          <Link key={`${keyBase}-${i}`} href={`/book/${bid(b)}`} className="ai-card">
             {b.cover_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={b.cover_url} alt="" loading="lazy" />

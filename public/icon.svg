@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#7B1E2B"/>
+  <path d="M156 120h172a48 48 0 0 1 48 48v224H204a48 48 0 0 0-48 48z" fill="#F3E4D8"/>
+  <path d="M156 120h172a48 48 0 0 1 48 48v224H204a48 48 0 0 0-48 48z" fill="none" stroke="#4A1220" stroke-width="14"/>
+  <path d="M156 120v272" stroke="#C9972B" stroke-width="20"/>
+  <text x="266" y="285" font-family="serif" font-size="120" font-weight="bold" text-anchor="middle" fill="#7B1E2B">লে</text>
+</svg>

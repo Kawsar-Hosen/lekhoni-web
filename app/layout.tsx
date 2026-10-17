@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Tiro_Bangla, Hind_Siliguri, Inter, Fraunces } from "next/font/google";
 import "./globals.css";
@@ -27,6 +27,24 @@ export const metadata: Metadata = {
     description: "Read Bengali books online — new episodes, timeless novels, and fresh voices.",
     images: ["/og.png"],
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "লেখনী কাহিনী",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafaf9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c0a09" },
+  ],
 };
 
 const tiroBangla = Tiro_Bangla({

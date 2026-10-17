@@ -33,6 +33,11 @@ html[data-theme="dark"] {
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: 76px; }
+body {
+  overflow-x: clip;
+  -webkit-tap-highlight-color: transparent;
+}
 body {
   background: var(--bg);
   color: var(--ink);
@@ -43,7 +48,8 @@ body {
 }
 h1, h2, h3 { line-height: 1.35; }
 a { color: inherit; text-decoration: none; }
-img { display: block; max-width: 100%; }
+a, button, [role="button"] { touch-action: manipulation; }
+img { display: block; max-width: 100%; height: auto; }
 ::selection { background: var(--accent-soft); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 @media (prefers-reduced-motion: reduce) {
@@ -2952,3 +2958,34 @@ body:has(.draw-full) .bnav { display: none; }
 .follow-pill:active:not(:disabled) { transform: scale(0.96); }
 .follow-pill.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .follow-pill:disabled { opacity: 0.6; cursor: default; }
+
+/* ---- Mobile optimization foundation (app-conversion ready) ---- */
+/* Sticky section heads sit below the sticky site header (60px desktop). */
+.npage-head { top: 68px; }
+.ai-full-top { top: 68px; }
+@media (display-mode: standalone) {
+  /* Notched phones in installed-app mode: keep chrome clear of the status bar. */
+  .site-header { padding-top: env(safe-area-inset-top); }
+}
+@media (max-width: 900px) {
+  html { scroll-padding-top: 124px; }
+  /* Mobile header = 56px bar + search row (~60px). */
+  .rd-top { top: 118px; }
+  .npage-head { top: 116px; }
+  .ai-full-top { top: 116px; }
+}
+@media (max-width: 640px) {
+  /* iOS Safari auto-zooms on focus when input text < 16px — keep at 16px. */
+  input, textarea, select { font-size: 16px; }
+  /* Bottom-nav clearance for page-end content */
+  main { padding-bottom: 76px; }
+}
+@media (max-width: 380px) {
+  /* Small phones */
+  .wrap { padding: 0 14px; }
+  .hero h1 { font-size: 22px; }
+  .section-head h2 { font-size: 18px; }
+  .grid-books { gap: 10px; }
+  .dash-bal-amt { font-size: 29px; }
+  .dash-new-btn { padding: 9px 14px; font-size: 12px; }
+}

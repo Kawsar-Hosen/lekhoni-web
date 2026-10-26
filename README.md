@@ -1,6 +1,6 @@
 # Lekhoni Kahini — Website (`lekhoni-web`)
 
-Public Bengali stories reading/writing platform. Live at **https://www.xyteee.com**.
+Public Bengali stories reading/writing platform. Live at **https://xyteee.com**.
 Private GitHub repo: `Kawsar-Hosen/lekhoni-web` (branch `main`).
 
 > Future AI: this file is your onboarding. Read it before changing anything.
@@ -60,7 +60,7 @@ Private GitHub repo: `Kawsar-Hosen/lekhoni-web` (branch `main`).
 - Theme: light default / dark / system (`lib/theme.tsx`, `lk-theme`). Maroon `#7B1E2B`,
   gold `#C9972B`. Fonts: Tiro Bangla + Hind Siliguri (BN), Inter + Fraunces (EN).
 - Brand contacts: `lekhoni-kahini@xyteee.com`; owner: Kawsar Hosen, +8801703169708.
-- AdSense: verification script only, `ADS_ENABLED=false`, no ad units, no `ads.txt`.
+- AdSense: verification script only, `ADS_ENABLED=false`, no ad units; `public/app-ads.txt` is for AdMob.
 - Animations: native CSS only, always respect `prefers-reduced-motion`.
 - No emojis in code comments; minimal emojis in UI only where already used.
 

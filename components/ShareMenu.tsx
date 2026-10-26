@@ -38,7 +38,7 @@ export default function ShareMenu() {
     window.setTimeout(() => setCopied(""), 1600);
   };
 
-  const siteUrl = "https://www.xyteee.com/";
+  const siteUrl = "https://xyteee.com/";
 
   if (!session) {
     const share = async () => {
@@ -110,7 +110,7 @@ export default function ShareMenu() {
     );
   }
 
-  const link = ref ? `https://www.xyteee.com/register?ref=${ref.code}` : siteUrl;
+  const link = ref ? `https://xyteee.com/register?ref=${ref.code}` : siteUrl;
   const wa = ref
     ? `https://wa.me/?text=${encodeURIComponent(`${t("shareSub")} ${link}`)}`
     : "";

@@ -9,7 +9,7 @@ import { AuthProvider } from "@/lib/auth";
 import Chrome from "@/components/Chrome";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.xyteee.com"),
+  metadataBase: new URL("https://xyteee.com"),
   title: {
     default: "Lekhoni Kahini — Bengali stories, novels & poems",
     template: "%s · Lekhoni Kahini",
@@ -81,11 +81,11 @@ function WebsiteJsonLd() {
     "@type": "WebSite",
     name: "Lekhoni Kahini",
     alternateName: "লেখনী কাহিনী",
-    url: "https://www.xyteee.com/",
+    url: "https://xyteee.com/",
     inLanguage: ["bn", "en"],
     potentialAction: {
       "@type": "SearchAction",
-      target: "https://www.xyteee.com/search?q={query}",
+      target: "https://xyteee.com/search?q={query}",
       "query-input": "required name=query",
     },
   };

@@ -79,7 +79,7 @@ export default function AffiliateClient() {
     }
   };
 
-  const link = ref ? `https://www.xyteee.com/register?ref=${ref.code}` : "";
+  const link = ref ? `https://xyteee.com/register?ref=${ref.code}` : "";
 
   return (
     <>

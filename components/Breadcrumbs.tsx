@@ -7,7 +7,7 @@ export default function Breadcrumbs({ trail }: { trail: { name: string; url: str
       "@type": "ListItem",
       position: i + 1,
       name: t.name,
-      item: `https://www.xyteee.com${t.url}`,
+      item: `https://xyteee.com${t.url}`,
     })),
   };
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />;
